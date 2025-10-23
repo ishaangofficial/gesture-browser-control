@@ -29,44 +29,76 @@ const GestureCanvas = ({ videoRef, onGestureDetected, onModeChange }: GestureCan
   useEffect(() => {
     if (!videoRef.current || !canvasRef.current) return;
 
-    // Access MediaPipe from window (loaded via CDN in index.html)
-    const { Hands } = (window as any);
-    const { Camera } = (window as any);
+    let hands: any = null;
+    let camera: any = null;
+    let isInitialized = false;
 
-    if (!Hands || !Camera) {
-      console.error("MediaPipe not loaded");
-      return;
-    }
+    const initializeMediaPipe = async () => {
+      // Wait for MediaPipe to load
+      let attempts = 0;
+      while (attempts < 50) {
+        const { Hands, Camera } = (window as any);
+        if (Hands && Camera) {
+          try {
+            hands = new Hands({
+              locateFile: (file: string) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`,
+            });
 
-    const hands = new Hands({
-      locateFile: (file: string) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`,
-    });
+            hands.setOptions({
+              maxNumHands: 2,
+              modelComplexity: 1,
+              minDetectionConfidence: 0.7,
+              minTrackingConfidence: 0.5,
+            });
 
-    hands.setOptions({
-      maxNumHands: 2,
-      modelComplexity: 1,
-      minDetectionConfidence: 0.7,
-      minTrackingConfidence: 0.5,
-    });
+            hands.onResults((results: Results) => {
+              if (isInitialized) {
+                processResults(results);
+              }
+            });
 
-    hands.onResults((results: Results) => {
-      processResults(results);
-    });
+            camera = new Camera(videoRef.current!, {
+              onFrame: async () => {
+                if (videoRef.current && hands && isInitialized) {
+                  await hands.send({ image: videoRef.current });
+                }
+              },
+              width: 640,
+              height: 480,
+            });
 
-    const camera = new Camera(videoRef.current, {
-      onFrame: async () => {
-        if (videoRef.current) {
-          await hands.send({ image: videoRef.current });
+            await camera.start();
+            isInitialized = true;
+            console.log("✅ MediaPipe initialized successfully");
+            return;
+          } catch (error) {
+            console.error("MediaPipe initialization error:", error);
+          }
         }
-      },
-      width: 640,
-      height: 480,
-    });
+        await new Promise(resolve => setTimeout(resolve, 100));
+        attempts++;
+      }
+      console.error("❌ MediaPipe failed to load after 5 seconds");
+    };
 
-    camera.start();
+    initializeMediaPipe();
 
     return () => {
-      hands.close();
+      isInitialized = false;
+      if (hands) {
+        try {
+          hands.close();
+        } catch (e) {
+          console.error("Error closing hands:", e);
+        }
+      }
+      if (camera) {
+        try {
+          camera.stop();
+        } catch (e) {
+          console.error("Error stopping camera:", e);
+        }
+      }
     };
   }, [videoRef]);
 
