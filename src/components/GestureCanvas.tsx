@@ -1,6 +1,5 @@
 import { useEffect, useRef, RefObject } from "react";
-import { Hands, Results, NormalizedLandmarkList } from "@mediapipe/hands";
-import { Camera } from "@mediapipe/camera_utils";
+import type { Results, NormalizedLandmarkList } from "@mediapipe/hands";
 
 interface GestureCanvasProps {
   videoRef: RefObject<HTMLVideoElement>;
@@ -30,8 +29,17 @@ const GestureCanvas = ({ videoRef, onGestureDetected, onModeChange }: GestureCan
   useEffect(() => {
     if (!videoRef.current || !canvasRef.current) return;
 
+    // Access MediaPipe from window (loaded via CDN in index.html)
+    const { Hands } = (window as any);
+    const { Camera } = (window as any);
+
+    if (!Hands || !Camera) {
+      console.error("MediaPipe not loaded");
+      return;
+    }
+
     const hands = new Hands({
-      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`,
+      locateFile: (file: string) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`,
     });
 
     hands.setOptions({
