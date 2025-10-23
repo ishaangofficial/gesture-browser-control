@@ -14,25 +14,25 @@ const OnboardingTour = ({ onComplete }: OnboardingTourProps) => {
   const steps = [
     {
       title: "Welcome to SparshMukhti! 👋",
-      description: "Control your computer using just hand gestures. No mouse, no keyboard - pure magic!",
+      description: "Control OBS Studio using just hand gestures. Built specifically for streamers who want hands-free control!",
       icon: <Hand className="w-12 h-12 text-primary" />,
       position: "center"
     },
     {
-      title: "Try Gestures in Browser 🎮",
-      description: "Test all gestures right here in your browser with our OBS Studio simulator. See real-time control!",
+      title: "Made for OBS Studio 🎥",
+      description: "Switch scenes, control audio, start/stop recording—all with simple hand gestures. Perfect for live streaming!",
       icon: <Video className="w-12 h-12 text-primary" />,
       position: "center"
     },
     {
-      title: "Learn Gestures Quickly 🚀",
-      description: "Point to move cursor, pinch to click, open palm for right click, and much more!",
+      title: "Try It in Your Browser 🎮",
+      description: "Test all gestures with our realistic OBS simulator. See how gesture control works in real-time before going live!",
       icon: <Sparkles className="w-12 h-12 text-primary" />,
       position: "center"
     },
     {
-      title: "Get the Desktop App 💻",
-      description: "For system-wide control, download our desktop application. Control everything - OBS, games, presentations!",
+      title: "Download Desktop App for Full Control 💻",
+      description: "Browser version is for testing only. For actual OBS control and system-wide gestures, download our desktop application!",
       icon: <Download className="w-12 h-12 text-primary" />,
       position: "center"
     }

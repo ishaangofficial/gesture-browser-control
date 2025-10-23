@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Studio from "./pages/Studio";
+import Training from "./pages/Training";
 import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/Settings";
 import GestureLibrary from "./pages/GestureLibrary";
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<Index />} />
           <Route path="/studio" element={<Studio />} />
+          <Route path="/training" element={<Training />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/library" element={<GestureLibrary />} />

@@ -4,8 +4,8 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import OBSSimulator from "@/components/OBSSimulator";
 import GestureCanvas from "@/components/GestureCanvas";
+import Navbar from "@/components/Navbar";
 import { Camera, Hand, Play, Square, Activity, Info } from "lucide-react";
-import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 
 const Studio = () => {
@@ -80,22 +80,7 @@ const Studio = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-      {/* Navigation */}
-      <nav className="glass border-b border-border/50 sticky top-0 z-50 backdrop-blur-xl">
-        <div className="max-w-[1920px] mx-auto px-6 py-4 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-primary/10 glow">
-              <Hand className="w-6 h-6 text-primary" />
-            </div>
-            <h1 className="text-2xl font-bold text-gradient">SparshMukhti Studio</h1>
-          </Link>
-          <Link to="/">
-            <Button variant="outline" size="sm">
-              Back to Home
-            </Button>
-          </Link>
-        </div>
-      </nav>
+      <Navbar />
 
       <div className="max-w-[1920px] mx-auto p-6 space-y-4">
         {/* Header */}
@@ -173,13 +158,13 @@ const Studio = () => {
                 </div>
                 
                 <div className="relative bg-black rounded-lg overflow-hidden aspect-video">
-                  <video
-                    ref={videoRef}
-                    autoPlay
-                    playsInline
-                    muted
-                    className="w-full h-full object-cover scale-x-[-1]"
-                  />
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  className="w-full h-full object-cover"
+                />
                   {isActive && (
                     <GestureCanvas
                       videoRef={videoRef}

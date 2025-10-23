@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Video, Mic, MicOff, Volume2, VolumeX, Users, MessageSquare, Settings as SettingsIcon } from "lucide-react";
@@ -25,9 +25,15 @@ const OBSSimulator = ({ cursorX, cursorY, isClicking, isRightClicking, gesture }
     { name: "BRB Scene", color: "from-orange-500 to-red-500" }
   ];
 
+  const prevGestureRef = useRef<string>("");
+
   // Handle gesture controls
   useEffect(() => {
-    if (isClicking) {
+    // Prevent repeated triggers
+    if (gesture === prevGestureRef.current) return;
+    prevGestureRef.current = gesture;
+
+    if (gesture === "Left Click" && isClicking) {
       // Scene switch on click
       const sceneButtons = document.querySelectorAll('[data-scene]');
       sceneButtons.forEach((btn, idx) => {
@@ -40,17 +46,17 @@ const OBSSimulator = ({ cursorX, cursorY, isClicking, isRightClicking, gesture }
     }
 
     if (gesture === "Right Click") {
-      setIsMuted(!isMuted);
+      setIsMuted(prev => !prev);
     }
 
     if (gesture === "Grab & Drag") {
-      setIsRecording(true);
+      setIsRecording(prev => !prev);
     }
 
     if (gesture === "Zoom In" || gesture === "Zoom Out") {
-      setChatVisible(!chatVisible);
+      setChatVisible(prev => !prev);
     }
-  }, [isClicking, gesture, cursorX, cursorY]);
+  }, [gesture, isClicking, cursorX, cursorY]);
 
   return (
     <div className="relative w-full h-full bg-[#18181B] rounded-xl overflow-hidden border border-zinc-800 shadow-2xl">
