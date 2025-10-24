@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import OBSSimulator from "@/components/OBSSimulator";
+import OBSSimulatorRealistic from "@/components/OBSSimulatorRealistic";
 import GestureCanvas from "@/components/GestureCanvas";
 import Navbar from "@/components/Navbar";
 import { Camera, Hand, Play, Square, Activity, Info } from "lucide-react";
@@ -78,18 +78,23 @@ const Studio = () => {
     }
   };
 
+  const handleCursorMove = (x: number, y: number) => {
+    setCursorX(x);
+    setCursorY(y);
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+    <div className="min-h-screen bg-background">
       <Navbar />
 
-      <div className="max-w-[1920px] mx-auto p-6 space-y-4">
+      <div className="max-w-[1920px] mx-auto section-spacing">
         {/* Header */}
-        <Card className="glass border-primary/20 p-6">
+        <Card className="clay p-6 mb-6">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <h2 className="text-2xl font-bold">OBS Studio Simulator</h2>
               <p className="text-muted-foreground">
-                Test gesture control with a real OBS interface simulation
+                Test gesture control with a realistic OBS interface simulation
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -112,30 +117,29 @@ const Studio = () => {
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
           {/* OBS Simulator - Takes 2/3 width */}
           <div className="xl:col-span-2 space-y-4">
-            <Card className="glass border-primary/20 p-0 overflow-hidden">
+            <Card className="clay p-0 overflow-hidden">
               <div className="aspect-video">
-                <OBSSimulator
+                <OBSSimulatorRealistic
                   cursorX={cursorX}
                   cursorY={cursorY}
                   isClicking={isClicking}
-                  isRightClicking={isRightClicking}
                   gesture={currentGesture}
                 />
               </div>
             </Card>
 
             {/* Info */}
-            <Card className="glass border-primary/20 p-4">
+            <Card className="clay p-4">
               <div className="flex items-start gap-3">
                 <Info className="w-5 h-5 text-primary mt-0.5" />
                 <div className="space-y-1">
                   <h3 className="font-semibold">How to control OBS</h3>
                   <ul className="text-sm text-muted-foreground space-y-1">
-                    <li>• <strong>Point</strong> to move cursor and select scenes</li>
-                    <li>• <strong>Pinch</strong> (index + middle) to click and switch scenes</li>
-                    <li>• <strong>Open palm</strong> to toggle mute/unmute mic</li>
-                    <li>• <strong>Both palms open</strong> to start/stop recording</li>
-                    <li>• <strong>Zoom gesture</strong> to show/hide chat panel</li>
+                    <li>• <strong>Point</strong> (index finger) to move cursor</li>
+                    <li>• <strong>Pinch</strong> (index + middle) to left click</li>
+                    <li>• <strong>Open palm</strong> to right click (toggle mic mute)</li>
+                    <li>• <strong>Both palms open</strong> to start/stop streaming</li>
+                    <li>• <strong>Zoom gesture</strong> (L-shape both hands) to start/stop recording</li>
                   </ul>
                 </div>
               </div>
@@ -145,14 +149,14 @@ const Studio = () => {
           {/* Camera feed + Stats */}
           <div className="space-y-4">
             {/* Camera feed */}
-            <Card className="glass border-primary/20 p-4">
+            <Card className="clay p-4">
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <h3 className="font-semibold flex items-center gap-2">
                     <Camera className="w-4 h-4 text-primary" />
                     Camera Feed
                   </h3>
-                  <Badge variant={isActive ? "default" : "secondary"}>
+                  <Badge variant={isActive ? "default" : "secondary"} className="clay">
                     {isActive ? "Active" : "Inactive"}
                   </Badge>
                 </div>
@@ -164,12 +168,14 @@ const Studio = () => {
                   playsInline
                   muted
                   className="w-full h-full object-cover"
+                  style={{ transform: "scaleX(-1)" }}
                 />
                   {isActive && (
                     <GestureCanvas
                       videoRef={videoRef}
                       onGestureDetected={handleGestureDetected}
                       onModeChange={setGestureMode}
+                      onCursorMove={handleCursorMove}
                     />
                   )}
                   {!isActive && (
@@ -182,7 +188,7 @@ const Studio = () => {
             </Card>
 
             {/* Stats */}
-            <Card className="glass border-primary/20 p-4">
+            <Card className="clay p-4">
               <h3 className="font-semibold mb-3 flex items-center gap-2">
                 <Activity className="w-4 h-4 text-primary" />
                 Live Stats
@@ -190,7 +196,7 @@ const Studio = () => {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Mode</span>
-                  <Badge variant="outline">{gestureMode}</Badge>
+                  <Badge variant="outline" className="clay">{gestureMode}</Badge>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Gesture</span>
@@ -206,24 +212,24 @@ const Studio = () => {
             </Card>
 
             {/* Quick gestures */}
-            <Card className="glass border-primary/20 p-4">
+            <Card className="clay p-4">
               <h3 className="font-semibold mb-3 text-sm">Quick Gestures</h3>
               <div className="space-y-2 text-xs">
-                <div className="flex items-center justify-between py-2 border-b border-border/50">
+                <div className="clay-inset p-3 flex items-center justify-between rounded-lg">
                   <span className="text-muted-foreground">👉 Point</span>
                   <span>Cursor</span>
                 </div>
-                <div className="flex items-center justify-between py-2 border-b border-border/50">
+                <div className="clay-inset p-3 flex items-center justify-between rounded-lg">
                   <span className="text-muted-foreground">🤏 Pinch</span>
                   <span>Click</span>
                 </div>
-                <div className="flex items-center justify-between py-2 border-b border-border/50">
+                <div className="clay-inset p-3 flex items-center justify-between rounded-lg">
                   <span className="text-muted-foreground">✋ Palm</span>
-                  <span>Mute</span>
+                  <span>Right Click</span>
                 </div>
-                <div className="flex items-center justify-between py-2">
+                <div className="clay-inset p-3 flex items-center justify-between rounded-lg">
                   <span className="text-muted-foreground">🙌 Both palms</span>
-                  <span>Record</span>
+                  <span>Stream</span>
                 </div>
               </div>
             </Card>

@@ -5,6 +5,7 @@ interface GestureCanvasProps {
   videoRef: RefObject<HTMLVideoElement>;
   onGestureDetected: (gesture: string) => void;
   onModeChange: (mode: string) => void;
+  onCursorMove?: (x: number, y: number) => void;
 }
 
 interface HandLandmark {
@@ -13,7 +14,7 @@ interface HandLandmark {
   z: number;
 }
 
-const GestureCanvas = ({ videoRef, onGestureDetected, onModeChange }: GestureCanvasProps) => {
+const GestureCanvas = ({ videoRef, onGestureDetected, onModeChange, onCursorMove }: GestureCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gestureStateRef = useRef({
     prevX: 0,
@@ -281,12 +282,20 @@ const GestureCanvas = ({ videoRef, onGestureDetected, onModeChange }: GestureCan
           const xPx = lm[8].x * 640;
           const yPx = lm[8].y * 480;
 
-          // Smooth interpolation
-          const smoothing = 7;
+          // Smooth interpolation with acceleration
+          const smoothing = 5;
           state.virtualCursorX = state.prevX + (xPx - state.prevX) / smoothing;
           state.virtualCursorY = state.prevY + (yPx - state.prevY) / smoothing;
           state.prevX = state.virtualCursorX;
           state.prevY = state.virtualCursorY;
+
+          // Map to screen coordinates (inverted X for mirror effect)
+          const screenX = (1 - state.virtualCursorX / 640) * window.innerWidth;
+          const screenY = (state.virtualCursorY / 480) * window.innerHeight;
+          
+          if (onCursorMove) {
+            onCursorMove(screenX, screenY);
+          }
 
           onGestureDetected("Cursor Move");
           onModeChange("🖱️ CURSOR MODE");
@@ -400,6 +409,7 @@ const GestureCanvas = ({ videoRef, onGestureDetected, onModeChange }: GestureCan
       width={640}
       height={480}
       className="absolute inset-0 w-full h-full pointer-events-none"
+      style={{ transform: "scaleX(-1)" }}
     />
   );
 };

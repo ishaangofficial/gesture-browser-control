@@ -4,77 +4,149 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/Navbar";
 import GestureCanvas from "@/components/GestureCanvas";
-import { Camera, Hand, CheckCircle2, Circle, ArrowRight, ArrowLeft } from "lucide-react";
+import { Camera, CheckCircle2, ArrowRight, Trophy, Target } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 const Training = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
-  const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   const [isActive, setIsActive] = useState(false);
   const [detectedGesture, setDetectedGesture] = useState<string>("None");
+  const [progress, setProgress] = useState(0);
+  const [successCount, setSuccessCount] = useState(0);
+  const [gestureStartTime, setGestureStartTime] = useState<number | null>(null);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [allCompleted, setAllCompleted] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const trainingSteps = [
     {
       title: "Cursor Movement",
       gesture: "Cursor Move",
-      instruction: "Point with your index finger. Keep other fingers down. Move your hand to control the cursor.",
+      instruction: "Point with your index finger. Keep other fingers down.",
+      details: "Move your hand to control the cursor smoothly across the screen",
       icon: "👆",
-      tips: "Keep your hand steady and move slowly for better control"
+      requiredDuration: 6000,
+      requiredCount: 1,
+      type: "duration"
     },
     {
       title: "Left Click",
       gesture: "Left Click",
-      instruction: "Extend index and middle fingers. Pinch them together to click.",
+      instruction: "Extend index and middle fingers. Pinch them together.",
+      details: "Bring the tips of index and middle fingers close together to click",
       icon: "🤏",
-      tips: "Make sure your fingers are close together (less than 40px)"
+      requiredDuration: 0,
+      requiredCount: 3,
+      type: "count"
     },
     {
       title: "Right Click",
       gesture: "Right Click",
-      instruction: "Open your palm completely. All five fingers extended.",
+      instruction: "Open your palm completely with all five fingers extended.",
+      details: "Spread your fingers wide apart for better detection",
       icon: "✋",
-      tips: "Spread your fingers wide apart for better detection"
+      requiredDuration: 0,
+      requiredCount: 3,
+      type: "count"
     },
     {
-      title: "Scroll",
-      gesture: "Scroll",
-      instruction: "Thumb down, all other fingers up. Move hand up/down to scroll.",
-      icon: "📜",
-      tips: "Keep the thumb pointing down and move vertically"
-    },
-    {
-      title: "Grab & Drag",
+      title: "Both Palms",
       gesture: "Grab & Drag",
-      instruction: "Open both palms simultaneously. This enters grab mode for dragging.",
+      instruction: "Show both hands with palms open simultaneously.",
+      details: "Both hands must be visible with all fingers extended",
       icon: "🙌",
-      tips: "Both hands must be visible with all fingers extended"
+      requiredDuration: 0,
+      requiredCount: 3,
+      type: "count"
     },
     {
-      title: "Zoom",
+      title: "Zoom Gesture",
       gesture: "Zoom",
-      instruction: "Make 'L' shape with both hands (thumb + index). Move hands apart to zoom in, together to zoom out.",
+      instruction: "Make 'L' shape with both hands (thumb + index).",
+      details: "Move hands apart to zoom in, together to zoom out",
       icon: "🔍",
-      tips: "Keep the L-shape consistent while moving your hands"
+      requiredDuration: 0,
+      requiredCount: 3,
+      type: "count"
     }
   ];
 
+  const currentTraining = trainingSteps[currentStep];
+
   useEffect(() => {
-    if (detectedGesture !== "None" && detectedGesture !== "Cursor Move") {
-      const expectedGesture = trainingSteps[currentStep].gesture;
-      
-      if (detectedGesture.includes(expectedGesture.split(" ")[0])) {
-        if (!completedSteps.has(currentStep)) {
-          setCompletedSteps(new Set([...completedSteps, currentStep]));
-          toast({
-            title: "Perfect! ✨",
-            description: `You've mastered the ${trainingSteps[currentStep].title} gesture!`,
-          });
+    if (detectedGesture === "None") {
+      setGestureStartTime(null);
+      return;
+    }
+
+    const expectedGesture = currentTraining.gesture;
+    const matchesGesture = detectedGesture.includes(expectedGesture.split(" ")[0]) || 
+                          (expectedGesture === "Grab & Drag" && detectedGesture === "Grab & Drag") ||
+                          (expectedGesture === "Zoom" && (detectedGesture === "Zoom In" || detectedGesture === "Zoom Out"));
+
+    if (matchesGesture) {
+      if (currentTraining.type === "duration") {
+        if (gestureStartTime === null) {
+          setGestureStartTime(Date.now());
+        } else {
+          const elapsed = Date.now() - gestureStartTime;
+          const newProgress = Math.min((elapsed / currentTraining.requiredDuration) * 100, 100);
+          setProgress(newProgress);
+
+          if (newProgress >= 100 && !showSuccess) {
+            handleSuccess();
+          }
+        }
+      } else {
+        if (gestureStartTime === null) {
+          setGestureStartTime(Date.now());
+          setSuccessCount(prev => prev + 1);
+          setProgress((successCount + 1) / currentTraining.requiredCount * 100);
+
+          if (successCount + 1 >= currentTraining.requiredCount && !showSuccess) {
+            handleSuccess();
+          }
         }
       }
+    } else {
+      if (gestureStartTime !== null) {
+        setGestureStartTime(null);
+        setProgress(Math.max(0, progress - 10));
+      }
     }
-  }, [detectedGesture, currentStep, completedSteps, toast]);
+  }, [detectedGesture, gestureStartTime, currentTraining, successCount, progress, showSuccess]);
+
+  useEffect(() => {
+    if (currentTraining.type === "count" && gestureStartTime !== null) {
+      const timeout = setTimeout(() => {
+        setGestureStartTime(null);
+      }, 500);
+      return () => clearTimeout(timeout);
+    }
+  }, [gestureStartTime, currentTraining]);
+
+  const handleSuccess = () => {
+    setShowSuccess(true);
+    toast({
+      title: "Perfect! ✨",
+      description: `You've mastered the ${currentTraining.title} gesture!`,
+    });
+
+    setTimeout(() => {
+      setShowSuccess(false);
+      if (currentStep < trainingSteps.length - 1) {
+        setCurrentStep(prev => prev + 1);
+        setProgress(0);
+        setSuccessCount(0);
+        setGestureStartTime(null);
+      } else {
+        setAllCompleted(true);
+      }
+    }, 2000);
+  };
 
   const startCamera = async () => {
     try {
@@ -108,109 +180,144 @@ const Training = () => {
     }
   };
 
-  const currentTraining = trainingSteps[currentStep];
-  const progress = (completedSteps.size / trainingSteps.length) * 100;
+  const getProgressColor = () => {
+    if (progress < 33) return "bg-red-500";
+    if (progress < 66) return "bg-orange-500";
+    return "bg-green-500";
+  };
+
+  if (allCompleted) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="max-w-4xl mx-auto section-spacing">
+          <Card className="clay clay-glow p-12 text-center">
+            <div className="mb-8">
+              <Trophy className="w-32 h-32 text-primary mx-auto mb-6" />
+              <h1 className="text-5xl font-bold mb-4 text-gradient">Training Complete! 🎉</h1>
+              <p className="text-xl text-muted-foreground mb-8">
+                You've mastered all gesture controls! Ready to control OBS Studio like a pro.
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+              {trainingSteps.map((step, idx) => (
+                <div key={idx} className="clay-inset p-4 rounded-xl">
+                  <div className="text-4xl mb-2">{step.icon}</div>
+                  <CheckCircle2 className="w-6 h-6 text-green-500 mx-auto" />
+                </div>
+              ))}
+            </div>
+
+            <Button onClick={() => navigate("/studio")} size="lg" className="clay clay-hover">
+              Go to OBS Simulator
+              <ArrowRight className="ml-2 w-5 h-5" />
+            </Button>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+    <div className="min-h-screen bg-background">
       <Navbar />
 
-      <div className="max-w-[1400px] mx-auto p-6 space-y-6">
-        {/* Header */}
-        <Card className="glass border-primary/20 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gradient mb-2">Gesture Training</h1>
-              <p className="text-muted-foreground">Master each gesture step by step</p>
-            </div>
-            <div className="text-right">
-              <div className="text-3xl font-bold text-gradient">{completedSteps.size}/{trainingSteps.length}</div>
-              <p className="text-sm text-muted-foreground">Gestures Mastered</p>
-            </div>
+      <div className="max-w-7xl mx-auto section-spacing">
+        <Card className="clay p-6 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-3xl font-bold">
+              Gesture <span className="text-gradient">Training</span>
+            </h1>
+            <Badge className="clay text-lg px-4 py-2">
+              {currentStep + 1} / {trainingSteps.length}
+            </Badge>
           </div>
-          
-          {/* Progress bar */}
-          <div className="mt-6">
-            <div className="h-3 bg-muted rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-gradient-to-r from-primary to-accent transition-all duration-500"
-                style={{ width: `${progress}%` }}
+          <div className="flex gap-2">
+            {trainingSteps.map((_, idx) => (
+              <div
+                key={idx}
+                className={`flex-1 h-2 rounded-full transition-all ${
+                  idx < currentStep ? 'bg-green-500' :
+                  idx === currentStep ? 'bg-primary' :
+                  'bg-muted'
+                }`}
               />
-            </div>
+            ))}
           </div>
         </Card>
 
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Training Steps */}
-          <div className="lg:col-span-1 space-y-3">
-            <Card className="glass border-primary/20 p-4">
-              <h3 className="font-semibold mb-3 flex items-center gap-2">
-                <Hand className="w-4 h-4 text-primary" />
-                Training Steps
-              </h3>
-              <div className="space-y-2">
-                {trainingSteps.map((step, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setCurrentStep(idx)}
-                    className={`w-full text-left p-3 rounded-lg transition-all ${
-                      currentStep === idx
-                        ? 'bg-primary/20 border-2 border-primary'
-                        : 'bg-muted/50 hover:bg-muted'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl">{step.icon}</span>
-                        <div>
-                          <div className="font-medium text-sm">{step.title}</div>
-                          <div className="text-xs text-muted-foreground">{step.gesture}</div>
-                        </div>
-                      </div>
-                      {completedSteps.has(idx) ? (
-                        <CheckCircle2 className="w-5 h-5 text-green-500" />
-                      ) : (
-                        <Circle className="w-5 h-5 text-muted-foreground" />
-                      )}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </Card>
-          </div>
-
-          {/* Main Training Area */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Current Step */}
-            <Card className="glass border-primary/20 p-8">
-              <div className="text-center space-y-4">
-                <div className="text-6xl">{currentTraining.icon}</div>
-                <h2 className="text-3xl font-bold">{currentTraining.title}</h2>
-                <Badge variant={completedSteps.has(currentStep) ? "default" : "secondary"} className="text-sm">
-                  {completedSteps.has(currentStep) ? "✓ Completed" : "In Progress"}
+        <div className="grid lg:grid-cols-2 gap-6">
+          <div className="space-y-6">
+            <Card className="clay clay-glow p-8">
+              <div className="text-center mb-6">
+                <div className="text-8xl mb-4">{currentTraining.icon}</div>
+                <h2 className="text-3xl font-bold mb-2">{currentTraining.title}</h2>
+                <Badge variant={showSuccess ? "default" : "secondary"} className="clay text-sm">
+                  {showSuccess ? "✓ Success!" : "In Progress"}
                 </Badge>
-                <p className="text-lg text-muted-foreground max-w-lg mx-auto">
-                  {currentTraining.instruction}
-                </p>
-                <div className="p-4 bg-primary/10 rounded-lg">
-                  <p className="text-sm text-primary">
-                    💡 <strong>Tip:</strong> {currentTraining.tips}
-                  </p>
+              </div>
+
+              <div className="clay-inset p-4 rounded-xl mb-4">
+                <h3 className="font-semibold mb-2 flex items-center gap-2">
+                  <Target className="w-4 h-4 text-primary" />
+                  Instructions
+                </h3>
+                <p className="text-sm mb-2">{currentTraining.instruction}</p>
+                <p className="text-xs text-muted-foreground">{currentTraining.details}</p>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="font-medium">
+                    {currentTraining.type === "duration" 
+                      ? "Hold gesture for 6 seconds"
+                      : `Perform ${currentTraining.requiredCount} times (${successCount}/${currentTraining.requiredCount})`
+                    }
+                  </span>
+                  <span className={`font-bold ${
+                    progress < 33 ? 'text-red-500' :
+                    progress < 66 ? 'text-orange-500' :
+                    'text-green-500'
+                  }`}>
+                    {Math.round(progress)}%
+                  </span>
+                </div>
+                <div className="h-4 bg-muted rounded-full overflow-hidden">
+                  <div
+                    className={`h-full transition-all duration-300 ${getProgressColor()}`}
+                    style={{ width: `${progress}%` }}
+                  />
                 </div>
               </div>
             </Card>
 
-            {/* Camera Feed */}
-            <Card className="glass border-primary/20 p-4">
+            <Card className="clay p-6">
+              <h3 className="font-semibold mb-3">💡 Tips</h3>
+              <ul className="text-sm space-y-2 text-muted-foreground">
+                <li>• Keep your hand within the camera frame</li>
+                <li>• Perform gestures slowly and clearly</li>
+                <li>• Good lighting improves detection</li>
+                <li>• Maintain steady hand position</li>
+              </ul>
+            </Card>
+          </div>
+
+          <div className="space-y-6">
+            <Card className="clay p-4">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-semibold flex items-center gap-2">
                   <Camera className="w-4 h-4 text-primary" />
                   Practice Area
                 </h3>
                 {!isActive ? (
-                  <Button onClick={startCamera} size="sm">Start Camera</Button>
+                  <Button onClick={startCamera} className="clay clay-hover">
+                    Start Camera
+                  </Button>
                 ) : (
-                  <Button onClick={stopCamera} size="sm" variant="destructive">Stop Camera</Button>
+                  <Button onClick={stopCamera} variant="destructive">
+                    Stop Camera
+                  </Button>
                 )}
               </div>
               
@@ -221,6 +328,7 @@ const Training = () => {
                   playsInline
                   muted
                   className="w-full h-full object-cover"
+                  style={{ transform: "scaleX(-1)" }}
                 />
                 {isActive && (
                   <GestureCanvas
@@ -235,38 +343,46 @@ const Training = () => {
                   </div>
                 )}
                 
-                {/* Detected Gesture Indicator */}
                 {isActive && detectedGesture !== "None" && (
                   <div className="absolute top-4 right-4 bg-primary/90 backdrop-blur-sm text-primary-foreground px-4 py-2 rounded-lg">
-                    <p className="text-sm font-medium">Detected: {detectedGesture}</p>
+                    <p className="text-sm font-medium">{detectedGesture}</p>
+                  </div>
+                )}
+
+                {showSuccess && (
+                  <div className="absolute inset-0 bg-green-500/20 backdrop-blur-sm flex items-center justify-center animate-fade-in">
+                    <div className="clay-glow bg-background p-8 rounded-2xl">
+                      <CheckCircle2 className="w-24 h-24 text-green-500 mx-auto mb-4" />
+                      <p className="text-2xl font-bold text-center">Perfect!</p>
+                    </div>
                   </div>
                 )}
               </div>
             </Card>
 
-            {/* Navigation */}
-            <div className="flex items-center justify-between">
-              <Button
-                variant="outline"
-                onClick={() => setCurrentStep(Math.max(0, currentStep - 1))}
-                disabled={currentStep === 0}
-                className="gap-2"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Previous
-              </Button>
-              <div className="text-sm text-muted-foreground">
-                Step {currentStep + 1} of {trainingSteps.length}
+            <Card className="clay p-4">
+              <h3 className="font-semibold mb-3">All Gestures</h3>
+              <div className="space-y-2">
+                {trainingSteps.map((step, idx) => (
+                  <div
+                    key={idx}
+                    className={`clay-inset p-3 rounded-lg flex items-center justify-between transition-all ${
+                      idx === currentStep ? 'ring-2 ring-primary' : ''
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">{step.icon}</span>
+                      <span className="font-medium text-sm">{step.title}</span>
+                    </div>
+                    {idx < currentStep ? (
+                      <CheckCircle2 className="w-5 h-5 text-green-500" />
+                    ) : idx === currentStep ? (
+                      <Badge variant="default" className="clay">Active</Badge>
+                    ) : null}
+                  </div>
+                ))}
               </div>
-              <Button
-                onClick={() => setCurrentStep(Math.min(trainingSteps.length - 1, currentStep + 1))}
-                disabled={currentStep === trainingSteps.length - 1}
-                className="gap-2"
-              >
-                Next
-                <ArrowRight className="w-4 h-4" />
-              </Button>
-            </div>
+            </Card>
           </div>
         </div>
       </div>
