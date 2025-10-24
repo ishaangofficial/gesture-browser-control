@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Hand, BarChart3, Settings, Library, Download, LogOut, Play, GraduationCap } from "lucide-react";
+import { Hand, BarChart3, Settings, Library, Download, LogOut, Play, GraduationCap, DollarSign, User } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 
@@ -9,6 +9,7 @@ const Navbar = () => {
   const location = useLocation();
 
   const handleLogout = () => {
+    localStorage.removeItem("isAuthenticated");
     localStorage.removeItem("isLoggedIn");
     navigate("/login");
     toast({
@@ -20,10 +21,10 @@ const Navbar = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <nav className="glass border-b border-border/50 sticky top-0 z-50 backdrop-blur-xl">
+    <nav className="clay border-b border-border sticky top-0 z-50 backdrop-blur-xl">
       <div className="max-w-[1920px] mx-auto px-6 py-4 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-          <div className="p-2 rounded-xl bg-primary/10 glow animate-pulse-glow">
+        <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-all">
+          <div className="clay p-2 rounded-xl clay-glow">
             <Hand className="w-6 h-6 text-primary" />
           </div>
           <h1 className="text-2xl font-bold text-gradient">SparshMukhti</h1>
@@ -74,18 +75,35 @@ const Navbar = () => {
             <Button 
               variant={isActive("/settings") ? "default" : "ghost"} 
               size="sm" 
-              className="gap-2"
+              className="gap-2 clay"
             >
               <Settings className="w-4 h-4" />
               Settings
             </Button>
           </Link>
-          <Button variant="outline" size="sm" className="gap-2">
+          <Link to="/pricing">
+            <Button 
+              variant={isActive("/pricing") ? "default" : "ghost"} 
+              size="sm" 
+              className="gap-2 clay"
+            >
+              <DollarSign className="w-4 h-4" />
+              Pricing
+            </Button>
+          </Link>
+          <Link to="/profile">
+            <Button 
+              variant={isActive("/profile") ? "default" : "ghost"} 
+              size="sm" 
+              className="gap-2 clay"
+            >
+              <User className="w-4 h-4" />
+              Profile
+            </Button>
+          </Link>
+          <Button variant="outline" size="sm" className="gap-2 clay">
             <Download className="w-4 h-4" />
             Get App
-          </Button>
-          <Button variant="ghost" size="sm" className="gap-2" onClick={handleLogout}>
-            <LogOut className="w-4 h-4" />
           </Button>
         </div>
       </div>
