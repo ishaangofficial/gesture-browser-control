@@ -25,6 +25,13 @@ const GestureCanvas = ({ videoRef, onGestureDetected, onModeChange, onCursorMove
     scrollStartY: null as number | null,
     virtualCursorX: 320,
     virtualCursorY: 240,
+    pinchEngaged: false,
+    lastProcessTime: 0,
+    gestureConfirmation: {
+      lastGesture: "None",
+      confirmCount: 0,
+      requiredFrames: 3,
+    },
   });
 
   useEffect(() => {
@@ -47,9 +54,9 @@ const GestureCanvas = ({ videoRef, onGestureDetected, onModeChange, onCursorMove
 
             hands.setOptions({
               maxNumHands: 2,
-              modelComplexity: 1,
-              minDetectionConfidence: 0.7,
-              minTrackingConfidence: 0.5,
+              modelComplexity: 0,
+              minDetectionConfidence: 0.85,
+              minTrackingConfidence: 0.8,
             });
 
             hands.onResults((results: Results) => {
@@ -61,7 +68,13 @@ const GestureCanvas = ({ videoRef, onGestureDetected, onModeChange, onCursorMove
             camera = new Camera(videoRef.current!, {
               onFrame: async () => {
                 if (videoRef.current && hands && isInitialized) {
-                  await hands.send({ image: videoRef.current });
+                  const now = Date.now();
+                  const state = gestureStateRef.current;
+                  // Limit to 30 FPS (33ms between frames)
+                  if (now - state.lastProcessTime >= 33) {
+                    state.lastProcessTime = now;
+                    await hands.send({ image: videoRef.current });
+                  }
                 }
               },
               width: 640,
@@ -103,30 +116,48 @@ const GestureCanvas = ({ videoRef, onGestureDetected, onModeChange, onCursorMove
     };
   }, [videoRef]);
 
+  const confirmGesture = (gesture: string, callback: () => void) => {
+    const confirmation = gestureStateRef.current.gestureConfirmation;
+    if (confirmation.lastGesture === gesture) {
+      confirmation.confirmCount++;
+      if (confirmation.confirmCount >= confirmation.requiredFrames) {
+        callback();
+        confirmation.confirmCount = confirmation.requiredFrames; // Keep at max to avoid repeated triggers
+      }
+    } else {
+      confirmation.lastGesture = gesture;
+      confirmation.confirmCount = 1;
+    }
+  };
+
+  const isFingerExtended = (lm: HandLandmark[], tipIdx: number, pipIdx: number, mcpIdx: number): boolean => {
+    return lm[tipIdx].y < lm[pipIdx].y - 0.02 && lm[pipIdx].y < lm[mcpIdx].y - 0.01;
+  };
+
   const isZoomGesture = (lm: HandLandmark[], label: string): boolean => {
     const thumbUp = label === "Right" ? lm[4].x < lm[3].x : lm[4].x > lm[3].x;
-    const indexUp = lm[8].y < lm[6].y;
-    const middleUp = lm[12].y < lm[10].y;
-    const ringUp = lm[16].y < lm[14].y;
-    const pinkyUp = lm[20].y < lm[18].y;
+    const indexUp = isFingerExtended(lm, 8, 6, 5);
+    const middleUp = isFingerExtended(lm, 12, 10, 9);
+    const ringUp = isFingerExtended(lm, 16, 14, 13);
+    const pinkyUp = isFingerExtended(lm, 20, 18, 17);
     return thumbUp && indexUp && !middleUp && !ringUp && !pinkyUp;
   };
 
   const isPalmOpen = (lm: HandLandmark[], label: string): boolean => {
     const thumbOk = label === "Right" ? lm[4].x < lm[3].x : lm[4].x > lm[3].x;
-    const indexUp = lm[8].y < lm[6].y;
-    const middleUp = lm[12].y < lm[10].y;
-    const ringUp = lm[16].y < lm[14].y;
-    const pinkyUp = lm[20].y < lm[18].y;
+    const indexUp = isFingerExtended(lm, 8, 6, 5);
+    const middleUp = isFingerExtended(lm, 12, 10, 9);
+    const ringUp = isFingerExtended(lm, 16, 14, 13);
+    const pinkyUp = isFingerExtended(lm, 20, 18, 17);
     return thumbOk && indexUp && middleUp && ringUp && pinkyUp;
   };
 
   const isScrollGesture = (lm: HandLandmark[], label: string): boolean => {
     const thumbDown = label === "Right" ? lm[4].x > lm[3].x : lm[4].x < lm[3].x;
-    const indexUp = lm[8].y < lm[6].y;
-    const middleUp = lm[12].y < lm[10].y;
-    const ringUp = lm[16].y < lm[14].y;
-    const pinkyUp = lm[20].y < lm[18].y;
+    const indexUp = isFingerExtended(lm, 8, 6, 5);
+    const middleUp = isFingerExtended(lm, 12, 10, 9);
+    const ringUp = isFingerExtended(lm, 16, 14, 13);
+    const pinkyUp = isFingerExtended(lm, 20, 18, 17);
     return thumbDown && indexUp && middleUp && ringUp && pinkyUp;
   };
 
@@ -182,56 +213,60 @@ const GestureCanvas = ({ videoRef, onGestureDetected, onModeChange, onCursorMove
 
       // GRAB GESTURE
       if (openStates[0] && openStates[1]) {
-        const avgX = (pts[0][0] + pts[1][0]) / 2;
-        const avgY = (pts[0][1] + pts[1][1]) / 2;
-        
-        state.virtualCursorX = avgX;
-        state.virtualCursorY = avgY;
-        state.grabMode = true;
-        state.zoomPrevDist = null;
+        confirmGesture("Grab & Drag", () => {
+          const avgX = (pts[0][0] + pts[1][0]) / 2;
+          const avgY = (pts[0][1] + pts[1][1]) / 2;
+          
+          state.virtualCursorX = avgX;
+          state.virtualCursorY = avgY;
+          state.grabMode = true;
+          state.zoomPrevDist = null;
 
-        onGestureDetected("Grab & Drag");
-        onModeChange("🖐️ GRAB MODE");
+          onGestureDetected("Grab & Drag");
+          onModeChange("🖐️ GRAB MODE");
 
-        // Draw grab indicator
-        ctx.strokeStyle = "rgba(255, 165, 0, 0.8)";
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.arc(avgX, avgY, 50, 0, 2 * Math.PI);
-        ctx.stroke();
+          // Draw grab indicator
+          ctx.strokeStyle = "rgba(255, 165, 0, 0.8)";
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.arc(avgX, avgY, 50, 0, 2 * Math.PI);
+          ctx.stroke();
+        });
       }
       // ZOOM GESTURE
       else if (zoomStates[0] && zoomStates[1]) {
-        const [x1, y1] = pts[0];
-        const [x2, y2] = pts[1];
-        const currDist = Math.hypot(x2 - x1, y2 - y1);
+        confirmGesture("Zoom", () => {
+          const [x1, y1] = pts[0];
+          const [x2, y2] = pts[1];
+          const currDist = Math.hypot(x2 - x1, y2 - y1);
 
-        if (state.zoomPrevDist === null) {
-          state.zoomPrevDist = currDist;
-        } else {
-          const delta = currDist - state.zoomPrevDist;
-          if (Math.abs(delta) > 10) {
-            const direction = delta > 0 ? "Zoom In" : "Zoom Out";
-            onGestureDetected(direction);
+          if (state.zoomPrevDist === null) {
             state.zoomPrevDist = currDist;
+          } else {
+            const delta = currDist - state.zoomPrevDist;
+            if (Math.abs(delta) > 10) {
+              const direction = delta > 0 ? "Zoom In" : "Zoom Out";
+              onGestureDetected(direction);
+              state.zoomPrevDist = currDist;
+            }
           }
-        }
 
-        state.grabMode = false;
-        onModeChange("🔍 ZOOM MODE");
+          state.grabMode = false;
+          onModeChange("🔍 ZOOM MODE");
 
-        // Draw zoom indicator
-        ctx.strokeStyle = "rgba(0, 255, 255, 1)";
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
-        ctx.stroke();
+          // Draw zoom indicator
+          ctx.strokeStyle = "rgba(0, 255, 255, 1)";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(x1, y1);
+          ctx.lineTo(x2, y2);
+          ctx.stroke();
 
-        ctx.fillStyle = "rgba(0, 255, 255, 0.3)";
-        ctx.beginPath();
-        ctx.arc((x1 + x2) / 2, (y1 + y2) / 2, currDist / 2, 0, 2 * Math.PI);
-        ctx.fill();
+          ctx.fillStyle = "rgba(0, 255, 255, 0.3)";
+          ctx.beginPath();
+          ctx.arc((x1 + x2) / 2, (y1 + y2) / 2, currDist / 2, 0, 2 * Math.PI);
+          ctx.fill();
+        });
       } else {
         state.grabMode = false;
         state.zoomPrevDist = null;
@@ -245,60 +280,64 @@ const GestureCanvas = ({ videoRef, onGestureDetected, onModeChange, onCursorMove
 
       drawHand(ctx, hand);
 
-      const indexUp = lm[8].y < lm[6].y;
-      const middleUp = lm[12].y < lm[10].y;
+      const indexUp = isFingerExtended(lm, 8, 6, 5);
+      const middleUp = isFingerExtended(lm, 12, 10, 9);
       const openPalm = isPalmOpen(lm, label);
       const scrollGesture = isScrollGesture(lm, label);
 
       // SCROLL MODE
       if (scrollGesture) {
-        const currentY = lm[8].y * 480;
-        if (!state.scrollMode) {
-          state.scrollMode = true;
-          state.scrollStartY = currentY;
-          onModeChange("⬆️⬇️ SCROLL MODE");
-        } else {
-          const deltaY = currentY - (state.scrollStartY || currentY);
-          if (Math.abs(deltaY) > 10) {
-            const direction = deltaY > 0 ? "Scroll Down" : "Scroll Up";
-            onGestureDetected(direction);
+        confirmGesture("Scroll", () => {
+          const currentY = lm[8].y * 480;
+          if (!state.scrollMode) {
+            state.scrollMode = true;
             state.scrollStartY = currentY;
+            onModeChange("⬆️⬇️ SCROLL MODE");
+          } else {
+            const deltaY = currentY - (state.scrollStartY || currentY);
+            if (Math.abs(deltaY) > 10) {
+              const direction = deltaY > 0 ? "Scroll Down" : "Scroll Up";
+              onGestureDetected(direction);
+              state.scrollStartY = currentY;
+            }
           }
-        }
 
-        // Draw scroll indicator
-        ctx.strokeStyle = "rgba(255, 0, 255, 1)";
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(320, 100);
-        ctx.lineTo(320, 380);
-        ctx.stroke();
+          // Draw scroll indicator
+          ctx.strokeStyle = "rgba(255, 0, 255, 1)";
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(320, 100);
+          ctx.lineTo(320, 380);
+          ctx.stroke();
+        });
       } else {
         state.scrollMode = false;
         state.scrollStartY = null;
 
         // CURSOR MODE
         if (indexUp && !middleUp && !openPalm) {
-          const xPx = lm[8].x * 640;
-          const yPx = lm[8].y * 480;
+          confirmGesture("Cursor Move", () => {
+            const xPx = lm[8].x * 640;
+            const yPx = lm[8].y * 480;
 
-          // Smooth interpolation with acceleration
-          const smoothing = 5;
-          state.virtualCursorX = state.prevX + (xPx - state.prevX) / smoothing;
-          state.virtualCursorY = state.prevY + (yPx - state.prevY) / smoothing;
-          state.prevX = state.virtualCursorX;
-          state.prevY = state.virtualCursorY;
+            // Smooth interpolation with acceleration
+            const smoothing = 5;
+            state.virtualCursorX = state.prevX + (xPx - state.prevX) / smoothing;
+            state.virtualCursorY = state.prevY + (yPx - state.prevY) / smoothing;
+            state.prevX = state.virtualCursorX;
+            state.prevY = state.virtualCursorY;
 
-          // Map to screen coordinates (inverted X for mirror effect)
-          const screenX = (1 - state.virtualCursorX / 640) * window.innerWidth;
-          const screenY = (state.virtualCursorY / 480) * window.innerHeight;
-          
-          if (onCursorMove) {
-            onCursorMove(screenX, screenY);
-          }
+            // Map to screen coordinates (inverted X for mirror effect)
+            const screenX = (1 - state.virtualCursorX / 640) * window.innerWidth;
+            const screenY = (state.virtualCursorY / 480) * window.innerHeight;
+            
+            if (onCursorMove) {
+              onCursorMove(screenX, screenY);
+            }
 
-          onGestureDetected("Cursor Move");
-          onModeChange("🖱️ CURSOR MODE");
+            onGestureDetected("Cursor Move");
+            onModeChange("🖱️ CURSOR MODE");
+          });
         }
         // LEFT CLICK
         else if (indexUp && middleUp && !openPalm) {
@@ -308,29 +347,44 @@ const GestureCanvas = ({ videoRef, onGestureDetected, onModeChange, onCursorMove
           const y2 = lm[12].y * 480;
           const dist = Math.hypot(x2 - x1, y2 - y1);
 
-          if (dist < 40) {
-            onGestureDetected("Left Click");
-            onModeChange("👆 CLICK");
-
-            // Draw click indicator
-            ctx.fillStyle = "rgba(0, 255, 0, 0.5)";
-            ctx.beginPath();
-            ctx.arc((x1 + x2) / 2, (y1 + y2) / 2, 30, 0, 2 * Math.PI);
-            ctx.fill();
+          // Pinch stability: 35px to engage, 50px to release
+          if (!state.pinchEngaged && dist < 35) {
+            state.pinchEngaged = true;
           }
+          
+          if (state.pinchEngaged && dist > 50) {
+            state.pinchEngaged = false;
+          }
+
+          if (state.pinchEngaged) {
+            confirmGesture("Left Click", () => {
+              onGestureDetected("Left Click");
+              onModeChange("👆 CLICK");
+
+              // Draw click indicator
+              ctx.fillStyle = "rgba(0, 255, 0, 0.5)";
+              ctx.beginPath();
+              ctx.arc((x1 + x2) / 2, (y1 + y2) / 2, 30, 0, 2 * Math.PI);
+              ctx.fill();
+            });
+          }
+        } else {
+          state.pinchEngaged = false;
         }
         // RIGHT CLICK
-        else if (openPalm) {
-          onGestureDetected("Right Click");
-          onModeChange("✋ RIGHT CLICK");
+        if (openPalm) {
+          confirmGesture("Right Click", () => {
+            onGestureDetected("Right Click");
+            onModeChange("✋ RIGHT CLICK");
 
-          // Draw right click indicator
-          const palmX = lm[9].x * 640;
-          const palmY = lm[9].y * 480;
-          ctx.fillStyle = "rgba(255, 255, 0, 0.4)";
-          ctx.beginPath();
-          ctx.arc(palmX, palmY, 60, 0, 2 * Math.PI);
-          ctx.fill();
+            // Draw right click indicator
+            const palmX = lm[9].x * 640;
+            const palmY = lm[9].y * 480;
+            ctx.fillStyle = "rgba(255, 255, 0, 0.4)";
+            ctx.beginPath();
+            ctx.arc(palmX, palmY, 60, 0, 2 * Math.PI);
+            ctx.fill();
+          });
         }
       }
 

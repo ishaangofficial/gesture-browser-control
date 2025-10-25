@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import OnboardingTour from "@/components/OnboardingTour";
 import Navbar from "@/components/Navbar";
+import WaitlistDialog from "@/components/WaitlistDialog";
 import { 
   Hand, 
   Sparkles,
@@ -16,13 +17,17 @@ import {
   Github,
   Star,
   Users,
-  TrendingUp
+  TrendingUp,
+  Award,
+  Headphones,
+  Code
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
 const Index = () => {
   const navigate = useNavigate();
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showWaitlist, setShowWaitlist] = useState(false);
 
   useEffect(() => {
     const onboardingCompleted = localStorage.getItem("onboarding_completed");
@@ -54,10 +59,10 @@ const Index = () => {
               <Hand className="w-24 h-24 text-primary" />
             </div>
           </div>
-          <h1 className="text-6xl md:text-8xl font-bold leading-tight">
+          <h1 className="text-6xl md:text-8xl font-bold leading-tight text-foreground">
             Control <span className="text-gradient">OBS Studio</span>
             <br />
-            With Hand Gestures
+            <span className="text-foreground">With Hand Gestures</span>
           </h1>
           <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto">
             Revolutionary gesture control for streamers. No mouse, no keyboard—just your hands.
@@ -126,13 +131,115 @@ const Index = () => {
                 <p className="text-muted-foreground mb-4">
                   Download our desktop app for full OBS Studio integration.
                 </p>
-                <Button className="clay clay-hover gap-2">
+                <Button 
+                  className="clay clay-hover gap-2"
+                  onClick={() => setShowWaitlist(true)}
+                >
                   <Download className="w-4 h-4" />
-                  Download App
+                  Get App
                 </Button>
               </div>
             </div>
           </Card>
+        </div>
+
+        {/* How It Works */}
+        <div className="space-y-8">
+          <div className="text-center">
+            <h2 className="text-4xl font-bold text-foreground mb-4">How It Works</h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Three simple steps to revolutionize your streaming workflow
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card className="clay clay-hover p-8 text-center">
+              <div className="clay p-4 rounded-full w-16 h-16 mx-auto mb-6 flex items-center justify-center">
+                <span className="text-3xl font-bold text-primary">1</span>
+              </div>
+              <h3 className="text-2xl font-bold mb-3">Learn Gestures</h3>
+              <p className="text-muted-foreground">
+                Complete our interactive training to master 12+ hand gestures in minutes
+              </p>
+            </Card>
+            
+            <Card className="clay clay-hover p-8 text-center">
+              <div className="clay p-4 rounded-full w-16 h-16 mx-auto mb-6 flex items-center justify-center">
+                <span className="text-3xl font-bold text-primary">2</span>
+              </div>
+              <h3 className="text-2xl font-bold mb-3">Practice in Studio</h3>
+              <p className="text-muted-foreground">
+                Test gestures with our realistic OBS simulator before going live
+              </p>
+            </Card>
+            
+            <Card className="clay clay-hover p-8 text-center">
+              <div className="clay p-4 rounded-full w-16 h-16 mx-auto mb-6 flex items-center justify-center">
+                <span className="text-3xl font-bold text-primary">3</span>
+              </div>
+              <h3 className="text-2xl font-bold mb-3">Stream Hands-Free</h3>
+              <p className="text-muted-foreground">
+                Control your entire OBS setup with natural hand movements
+              </p>
+            </Card>
+          </div>
+        </div>
+
+        {/* Why Choose SparshMukhti */}
+        <div className="space-y-8">
+          <div className="text-center">
+            <h2 className="text-4xl font-bold text-foreground mb-4">Why Choose SparshMukhti?</h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Built by streamers, for streamers
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card className="clay clay-hover p-8">
+              <Award className="w-12 h-12 text-primary mb-4" />
+              <h3 className="text-2xl font-bold mb-3">Industry Leading</h3>
+              <p className="text-muted-foreground mb-4">
+                99.3% gesture accuracy with &lt;100ms response time—the fastest in the market
+              </p>
+              <div className="clay-inset p-3 rounded-lg">
+                <span className="text-sm text-muted-foreground">Used by 1000+ streamers worldwide</span>
+              </div>
+            </Card>
+            
+            <Card className="clay clay-hover p-8">
+              <Headphones className="w-12 h-12 text-primary mb-4" />
+              <h3 className="text-2xl font-bold mb-3">Premium Support</h3>
+              <p className="text-muted-foreground mb-4">
+                Get help from our team of experts via Discord, email, or live chat
+              </p>
+              <div className="clay-inset p-3 rounded-lg">
+                <span className="text-sm text-muted-foreground">Average response time: &lt;2 hours</span>
+              </div>
+            </Card>
+            
+            <Card className="clay clay-hover p-8">
+              <Code className="w-12 h-12 text-primary mb-4" />
+              <h3 className="text-2xl font-bold mb-3">Open Source Core</h3>
+              <p className="text-muted-foreground mb-4">
+                Our gesture recognition engine is open source and community-driven
+              </p>
+              <Button variant="outline" className="clay gap-2">
+                <Github className="w-4 h-4" />
+                View on GitHub
+              </Button>
+            </Card>
+            
+            <Card className="clay clay-hover p-8">
+              <Users className="w-12 h-12 text-primary mb-4" />
+              <h3 className="text-2xl font-bold mb-3">Active Community</h3>
+              <p className="text-muted-foreground mb-4">
+                Join our Discord with 5000+ members sharing tips, presets, and custom gestures
+              </p>
+              <Button variant="outline" className="clay gap-2">
+                Join Discord
+              </Button>
+            </Card>
+          </div>
         </div>
 
         {/* Stats */}
@@ -175,6 +282,8 @@ const Index = () => {
           </div>
         </Card>
       </div>
+      
+      <WaitlistDialog open={showWaitlist} onOpenChange={setShowWaitlist} />
     </div>
   );
 };

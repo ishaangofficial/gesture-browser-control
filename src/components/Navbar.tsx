@@ -1,12 +1,15 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Hand, BarChart3, Settings, Library, Download, LogOut, Play, GraduationCap, DollarSign, User } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import WaitlistDialog from "./WaitlistDialog";
 
 const Navbar = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
+  const [showWaitlist, setShowWaitlist] = useState(false);
 
   const handleLogout = () => {
     localStorage.removeItem("isAuthenticated");
@@ -101,12 +104,19 @@ const Navbar = () => {
               Profile
             </Button>
           </Link>
-          <Button variant="outline" size="sm" className="gap-2 clay">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="gap-2 clay clay-hover"
+            onClick={() => setShowWaitlist(true)}
+          >
             <Download className="w-4 h-4" />
             Get App
           </Button>
         </div>
       </div>
+      
+      <WaitlistDialog open={showWaitlist} onOpenChange={setShowWaitlist} />
     </nav>
   );
 };
