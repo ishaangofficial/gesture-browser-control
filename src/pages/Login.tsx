@@ -1,27 +1,38 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Hand, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+
+const loginSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(1, "Password is required"),
+});
 
 const Login = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
 
   const demoCredentials = {
     email: "demo@sparshmukhti.com",
     password: "demo123"
   };
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (email === demoCredentials.email && password === demoCredentials.password) {
+  const form = useForm<z.infer<typeof loginSchema>>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
+  const handleLogin = (values: z.infer<typeof loginSchema>) => {
+    if (values.email === demoCredentials.email && values.password === demoCredentials.password) {
       localStorage.setItem("isLoggedIn", "true");
       toast({
         title: "Welcome back! 👋",
@@ -38,8 +49,8 @@ const Login = () => {
   };
 
   const handleAutoFill = () => {
-    setEmail(demoCredentials.email);
-    setPassword(demoCredentials.password);
+    form.setValue("email", demoCredentials.email);
+    form.setValue("password", demoCredentials.password);
     toast({
       title: "Demo credentials filled",
       description: "Click Login to continue",
@@ -74,37 +85,51 @@ const Login = () => {
           </div>
 
           {/* Login form */}
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div className="space-y-2 text-left">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="demo@sparshmukhti.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="glass"
-                required
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleLogin)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem className="text-left">
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="email"
+                        placeholder="demo@sparshmukhti.com"
+                        className="glass"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
 
-            <div className="space-y-2 text-left">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="glass"
-                required
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem className="text-left">
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="password"
+                        placeholder="••••••"
+                        className="glass"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
 
-            <Button type="submit" className="w-full" size="lg">
-              Login
-            </Button>
-          </form>
+              <Button type="submit" className="w-full" size="lg">
+                Login
+              </Button>
+            </form>
+          </Form>
 
           {/* Demo info */}
           <div className="pt-4 border-t border-border/50">
