@@ -33,7 +33,7 @@ const Login = () => {
 
   const handleLogin = (values: z.infer<typeof loginSchema>) => {
     if (values.email === demoCredentials.email && values.password === demoCredentials.password) {
-      localStorage.setItem("isLoggedIn", "true");
+      localStorage.setItem("isAuthenticated", "true");
       toast({
         title: "Welcome back! 👋",
         description: "Successfully logged in to SparshMukhti",
