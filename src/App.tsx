@@ -28,15 +28,12 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-          <Route path="/studio" element={<ProtectedRoute><Studio /></ProtectedRoute>} />
-          <Route path="/training" element={<ProtectedRoute><Training /></ProtectedRoute>} />
-          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-          <Route path="/library" element={<ProtectedRoute><GestureLibrary /></ProtectedRoute>} />
-          <Route path="/pricing" element={<ProtectedRoute><Pricing /></ProtectedRoute>} />
-          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+          <Route path="/" element={<Index />} />
+          <Route path="/studio" element={<Studio />} />
+          <Route path="/training" element={<Training />} />
+          <Route path="/library" element={<GestureLibrary />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/pricing" element={<Pricing />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

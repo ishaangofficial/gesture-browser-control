@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, CheckCircle2 } from "lucide-react";
+import { Mail, CheckCircle2, Github } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface WaitlistDialogProps {
   open: boolean;
@@ -31,22 +32,56 @@ const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
 
     setLoading(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    setSubmitted(true);
-    setLoading(false);
-    
-    toast({
-      title: "You're on the waitlist! 🎉",
-      description: "We'll notify you when the desktop app is ready.",
-    });
+    try {
+      // Save to database
+      const { error: dbError } = await supabase
+        .from('waitlist')
+        .insert([{ email }]);
 
-    setTimeout(() => {
-      setSubmitted(false);
-      setEmail("");
-      onOpenChange(false);
-    }, 2000);
+      if (dbError) {
+        if (dbError.code === '23505') { // Unique constraint violation
+          toast({
+            title: "Already registered",
+            description: "This email is already on the waitlist!",
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
+        }
+        throw dbError;
+      }
+
+      // Send confirmation email
+      const { error: emailError } = await supabase.functions.invoke('send-confirmation-email', {
+        body: { email }
+      });
+
+      if (emailError) {
+        console.error("Error sending email:", emailError);
+      }
+
+      setSubmitted(true);
+      
+      toast({
+        title: "You're on the waitlist! 🎉",
+        description: "Check your email for confirmation.",
+      });
+
+      setTimeout(() => {
+        setSubmitted(false);
+        setEmail("");
+        onOpenChange(false);
+      }, 3000);
+    } catch (error) {
+      console.error("Error:", error);
+      toast({
+        title: "Something went wrong",
+        description: "Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -89,7 +124,7 @@ const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
               </div>
             </div>
 
-            <DialogFooter>
+            <DialogFooter className="flex-col sm:flex-col gap-3">
               <Button 
                 type="submit" 
                 className="w-full clay clay-hover"
@@ -97,6 +132,16 @@ const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
               >
                 {loading ? "Joining..." : "Join Waitlist"}
               </Button>
+              
+              <a 
+                href="https://github.com/yourusername/sparshmukthi" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
+              >
+                <Github className="w-4 h-4" />
+                <span>For Developers - View on GitHub</span>
+              </a>
             </DialogFooter>
           </form>
         ) : (

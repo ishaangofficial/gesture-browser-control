@@ -54,16 +54,6 @@ const Navbar = () => {
               Training
             </Button>
           </Link>
-          <Link to="/dashboard">
-            <Button 
-              variant={isActive("/dashboard") ? "default" : "ghost"} 
-              size="sm" 
-              className="gap-2"
-            >
-              <BarChart3 className="w-4 h-4" />
-              Dashboard
-            </Button>
-          </Link>
           <Link to="/library">
             <Button 
               variant={isActive("/library") ? "default" : "ghost"} 
@@ -92,16 +82,6 @@ const Navbar = () => {
             >
               <DollarSign className="w-4 h-4" />
               Pricing
-            </Button>
-          </Link>
-          <Link to="/profile">
-            <Button 
-              variant={isActive("/profile") ? "default" : "ghost"} 
-              size="sm" 
-              className="gap-2 clay"
-            >
-              <User className="w-4 h-4" />
-              Profile
             </Button>
           </Link>
           <Button 

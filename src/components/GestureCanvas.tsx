@@ -19,6 +19,8 @@ const GestureCanvas = ({ videoRef, onGestureDetected, onModeChange, onCursorMove
   const gestureStateRef = useRef({
     prevX: 0,
     prevY: 0,
+    velocityX: 0,
+    velocityY: 0,
     zoomPrevDist: null as number | null,
     grabMode: false,
     scrollMode: false,
@@ -320,10 +322,20 @@ const GestureCanvas = ({ videoRef, onGestureDetected, onModeChange, onCursorMove
             const xPx = lm[8].x * 640;
             const yPx = lm[8].y * 480;
 
-            // Smooth interpolation with acceleration
-            const smoothing = 5;
-            state.virtualCursorX = state.prevX + (xPx - state.prevX) / smoothing;
-            state.virtualCursorY = state.prevY + (yPx - state.prevY) / smoothing;
+            // Calculate velocity
+            const deltaX = xPx - state.prevX;
+            const deltaY = yPx - state.prevY;
+            
+            // Apply momentum and acceleration
+            const acceleration = 0.3;
+            state.velocityX = state.velocityX * 0.7 + deltaX * acceleration;
+            state.velocityY = state.velocityY * 0.7 + deltaY * acceleration;
+
+            // Smooth interpolation with velocity
+            const smoothing = 3;
+            state.virtualCursorX = state.prevX + (xPx - state.prevX) / smoothing + state.velocityX;
+            state.virtualCursorY = state.prevY + (yPx - state.prevY) / smoothing + state.velocityY;
+            
             state.prevX = state.virtualCursorX;
             state.prevY = state.virtualCursorY;
 

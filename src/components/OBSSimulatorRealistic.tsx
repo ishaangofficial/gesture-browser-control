@@ -1,5 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { Video, Volume2, VolumeX, Eye, EyeOff, Lock, Settings as SettingsIcon, Plus, Minus, ChevronUp, ChevronDown } from "lucide-react";
+import scene1 from "@/assets/obs-scene-1.jpg";
+import scene2 from "@/assets/obs-scene-2.jpg";
+import scene3 from "@/assets/obs-scene-3.jpg";
+import scene4 from "@/assets/obs-scene-4.jpg";
 
 interface OBSSimulatorProps {
   cursorX: number;
@@ -15,16 +19,16 @@ const OBSSimulatorRealistic = ({ cursorX, cursorY, isClicking, gesture }: OBSSim
   const [isMicMuted, setIsMicMuted] = useState(false);
   const [isDesktopMuted, setIsDesktopMuted] = useState(false);
   const [sources, setSources] = useState([
-    { name: "Window Capture 2", visible: true, locked: false },
-    { name: "Window Capture", visible: true, locked: false },
-    { name: "Group", visible: false, locked: false }
+    { name: "Game Capture", visible: true, locked: false },
+    { name: "Webcam", visible: true, locked: false },
+    { name: "Overlay Graphics", visible: false, locked: false }
   ]);
   
   const scenes = [
-    { name: "Scene", active: true },
-    { name: "Scene 2", active: false },
-    { name: "Scene 3", active: false },
-    { name: "Scene 4", active: false }
+    { name: "Gaming Scene", active: true, image: scene1 },
+    { name: "Coding Scene", active: false, image: scene2 },
+    { name: "Chat Scene", active: false, image: scene3 },
+    { name: "Music Scene", active: false, image: scene4 }
   ];
 
   const prevGestureRef = useRef<string>("");
@@ -46,8 +50,20 @@ const OBSSimulatorRealistic = ({ cursorX, cursorY, isClicking, gesture }: OBSSim
       setIsStreaming(prev => !prev);
     }
 
-    if (gesture === "Zoom In" || gesture === "Zoom Out") {
+    if (gesture === "Zoom In") {
+      setActiveScene(prev => (prev + 1) % scenes.length);
+    }
+
+    if (gesture === "Zoom Out") {
+      setActiveScene(prev => (prev - 1 + scenes.length) % scenes.length);
+    }
+
+    if (gesture === "Scroll Up") {
       setIsRecording(prev => !prev);
+    }
+
+    if (gesture === "Scroll Down") {
+      setIsDesktopMuted(prev => !prev);
     }
   }, [gesture, isClicking, cursorX, cursorY]);
 
@@ -173,15 +189,21 @@ const OBSSimulatorRealistic = ({ cursorX, cursorY, isClicking, gesture }: OBSSim
         <div className="flex-1 flex flex-col min-w-0">
           {/* Preview Area */}
           <div className="flex-1 bg-black relative overflow-hidden min-h-0">
-            {/* Preview Content */}
-            <div className="absolute inset-4 bg-gradient-to-br from-blue-900/30 to-purple-900/30 flex items-center justify-center">
-              <Video className="w-24 h-24 text-white/20" />
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.05),transparent_50%)]" />
-            </div>
+            {/* Scene Background Image */}
+            <div 
+              className="absolute inset-0 bg-cover bg-center transition-all duration-500"
+              style={{ 
+                backgroundImage: `url(${scenes[activeScene].image})`,
+                filter: 'brightness(0.7)'
+              }}
+            />
+            
+            {/* Overlay Gradient */}
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 to-purple-900/20" />
 
             {/* Virtual Cursor */}
             <div
-              className="absolute w-4 h-4 rounded-full border-2 border-cyan-400 bg-cyan-400/30 shadow-lg shadow-cyan-400/50 transition-all duration-75 pointer-events-none"
+              className="absolute w-4 h-4 rounded-full border-2 border-cyan-400 bg-cyan-400/30 shadow-lg shadow-cyan-400/50 transition-all duration-75 pointer-events-none z-10"
               style={{
                 left: `${(cursorX / window.innerWidth) * 100}%`,
                 top: `${(cursorY / window.innerHeight) * 100}%`,
