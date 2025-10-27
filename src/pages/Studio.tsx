@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import OBSSimulatorRealistic from "@/components/OBSSimulatorRealistic";
-import GestureCanvas from "@/components/GestureCanvas";
+import GestureCanvasAdvanced from "@/components/GestureCanvasAdvanced";
+import { PerformanceDashboard } from "@/components/PerformanceDashboard";
 import Navbar from "@/components/Navbar";
 import { Camera, Hand, Play, Square, Activity, Info } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -17,6 +18,14 @@ const Studio = () => {
   const [cursorY, setCursorY] = useState(0);
   const [isClicking, setIsClicking] = useState(false);
   const [isRightClicking, setIsRightClicking] = useState(false);
+  const [performanceMetrics, setPerformanceMetrics] = useState({
+    latency: 0,
+    fps: 60,
+    confidence: 0,
+    predictionAccuracy: 90,
+    gesture: "None",
+    status: "ready" as "ready" | "processing" | "error",
+  });
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -66,6 +75,7 @@ const Studio = () => {
 
   const handleGestureDetected = (gesture: string) => {
     setCurrentGesture(gesture);
+    setPerformanceMetrics(prev => ({ ...prev, gesture, status: "processing" }));
     
     if (gesture.includes("Click")) {
       setIsClicking(true);
@@ -76,11 +86,27 @@ const Studio = () => {
       setIsRightClicking(true);
       setTimeout(() => setIsRightClicking(false), 200);
     }
+
+    setTimeout(() => {
+      setPerformanceMetrics(prev => ({ ...prev, status: "ready" }));
+    }, 100);
   };
 
   const handleCursorMove = (x: number, y: number) => {
     setCursorX(x);
     setCursorY(y);
+  };
+
+  const handlePerformanceUpdate = (metrics: {
+    latency: number;
+    fps: number;
+    confidence: number;
+    predictionAccuracy: number;
+  }) => {
+    setPerformanceMetrics(prev => ({
+      ...prev,
+      ...metrics,
+    }));
   };
 
   return (
@@ -171,11 +197,12 @@ const Studio = () => {
                   style={{ transform: "scaleX(-1)" }}
                 />
                   {isActive && (
-                    <GestureCanvas
+                    <GestureCanvasAdvanced
                       videoRef={videoRef}
                       onGestureDetected={handleGestureDetected}
                       onModeChange={setGestureMode}
                       onCursorMove={handleCursorMove}
+                      onPerformanceUpdate={handlePerformanceUpdate}
                     />
                   )}
                   {!isActive && (
@@ -210,6 +237,9 @@ const Studio = () => {
                 </div>
               </div>
             </Card>
+
+            {/* Performance Dashboard */}
+            {isActive && <PerformanceDashboard metrics={performanceMetrics} />}
 
             {/* Quick gestures */}
             <Card className="clay p-4">
