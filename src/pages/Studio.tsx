@@ -164,8 +164,9 @@ const Studio = () => {
                     <li>• <strong>Point</strong> (index finger) to move cursor</li>
                     <li>• <strong>Pinch</strong> (index + middle) to left click</li>
                     <li>• <strong>Open palm</strong> to right click (toggle mic mute)</li>
+                    <li>• <strong>Wave</strong> (rapid horizontal movement) to change scenes</li>
+                    <li>• <strong>Zoom gesture</strong> (L-shape both hands) to play/pause video</li>
                     <li>• <strong>Both palms open</strong> to start/stop streaming</li>
-                    <li>• <strong>Zoom gesture</strong> (L-shape both hands) to start/stop recording</li>
                   </ul>
                 </div>
               </div>
@@ -256,6 +257,10 @@ const Studio = () => {
                 <div className="clay-inset p-3 flex items-center justify-between rounded-lg">
                   <span className="text-muted-foreground">✋ Palm</span>
                   <span>Right Click</span>
+                </div>
+                <div className="clay-inset p-3 flex items-center justify-between rounded-lg">
+                  <span className="text-muted-foreground">👋 Wave</span>
+                  <span>Change Scene</span>
                 </div>
                 <div className="clay-inset p-3 flex items-center justify-between rounded-lg">
                   <span className="text-muted-foreground">🙌 Both palms</span>

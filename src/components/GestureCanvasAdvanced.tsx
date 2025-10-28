@@ -337,6 +337,15 @@ const GestureCanvasAdvanced = ({
           onModeChange("✋ RIGHT CLICK");
         });
       }
+
+      // WAVE GESTURE - Rapid horizontal movement
+      const waveSpeed = Math.abs(state.velocityX);
+      if (indexUp && waveSpeed > 800 && Math.abs(state.velocityY) < 300) {
+        confirmGesture("Wave", 0.85, () => {
+          onGestureDetected("Wave");
+          onModeChange("👋 WAVE");
+        });
+      }
     }
     // TWO-HAND GESTURES
     else if (handCount === 2) {

@@ -1,9 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Video, Volume2, VolumeX, Eye, EyeOff, Lock, Settings as SettingsIcon, Plus, Minus, ChevronUp, ChevronDown } from "lucide-react";
-import scene1 from "@/assets/obs-scene-1.jpg";
-import scene2 from "@/assets/obs-scene-2.jpg";
-import scene3 from "@/assets/obs-scene-3.jpg";
-import scene4 from "@/assets/obs-scene-4.jpg";
+import { Video, Volume2, VolumeX, Eye, EyeOff, Lock, Settings as SettingsIcon, Plus, Minus, ChevronUp, ChevronDown, Play, Pause } from "lucide-react";
 
 interface OBSSimulatorProps {
   cursorX: number;
@@ -18,17 +14,20 @@ const OBSSimulatorRealistic = ({ cursorX, cursorY, isClicking, gesture }: OBSSim
   const [isRecording, setIsRecording] = useState(false);
   const [isMicMuted, setIsMicMuted] = useState(false);
   const [isDesktopMuted, setIsDesktopMuted] = useState(false);
+  const [videosPlaying, setVideosPlaying] = useState([true, true, true, true]);
   const [sources, setSources] = useState([
     { name: "Game Capture", visible: true, locked: false },
     { name: "Webcam", visible: true, locked: false },
     { name: "Overlay Graphics", visible: false, locked: false }
   ]);
   
+  const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
+  
   const scenes = [
-    { name: "Gaming Scene", active: true, image: scene1 },
-    { name: "Coding Scene", active: false, image: scene2 },
-    { name: "Chat Scene", active: false, image: scene3 },
-    { name: "Music Scene", active: false, image: scene4 }
+    { name: "Gaming Scene", active: true, video: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" },
+    { name: "Coding Scene", active: false, video: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4" },
+    { name: "Chat Scene", active: false, video: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" },
+    { name: "Music Scene", active: false, video: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4" }
   ];
 
   const prevGestureRef = useRef<string>("");
@@ -50,12 +49,19 @@ const OBSSimulatorRealistic = ({ cursorX, cursorY, isClicking, gesture }: OBSSim
       setIsStreaming(prev => !prev);
     }
 
-    if (gesture === "Zoom In") {
+    if (gesture === "Wave") {
+      // Wave gesture changes scene
       setActiveScene(prev => (prev + 1) % scenes.length);
     }
 
+    if (gesture === "Zoom In") {
+      // Zoom In plays video
+      toggleVideoPlayPause(activeScene);
+    }
+
     if (gesture === "Zoom Out") {
-      setActiveScene(prev => (prev - 1 + scenes.length) % scenes.length);
+      // Zoom Out pauses video
+      toggleVideoPlayPause(activeScene);
     }
 
     if (gesture === "Scroll Up") {
@@ -65,7 +71,28 @@ const OBSSimulatorRealistic = ({ cursorX, cursorY, isClicking, gesture }: OBSSim
     if (gesture === "Scroll Down") {
       setIsDesktopMuted(prev => !prev);
     }
-  }, [gesture, isClicking, cursorX, cursorY]);
+  }, [gesture, isClicking, cursorX, cursorY, activeScene]);
+
+  const toggleVideoPlayPause = (sceneIndex: number) => {
+    const video = videoRefs.current[sceneIndex];
+    if (video) {
+      if (video.paused) {
+        video.play();
+        setVideosPlaying(prev => {
+          const newState = [...prev];
+          newState[sceneIndex] = true;
+          return newState;
+        });
+      } else {
+        video.pause();
+        setVideosPlaying(prev => {
+          const newState = [...prev];
+          newState[sceneIndex] = false;
+          return newState;
+        });
+      }
+    }
+  };
 
   const handleClick = (x: number, y: number) => {
     if (!containerRef.current) return;
@@ -189,17 +216,33 @@ const OBSSimulatorRealistic = ({ cursorX, cursorY, isClicking, gesture }: OBSSim
         <div className="flex-1 flex flex-col min-w-0">
           {/* Preview Area */}
           <div className="flex-1 bg-black relative overflow-hidden min-h-0">
-            {/* Scene Background Image */}
-            <div 
-              className="absolute inset-0 bg-cover bg-center transition-all duration-500"
-              style={{ 
-                backgroundImage: `url(${scenes[activeScene].image})`,
-                filter: 'brightness(0.7)'
-              }}
-            />
+            {/* Video Background */}
+            {scenes.map((scene, idx) => (
+              <video
+                key={idx}
+                ref={el => videoRefs.current[idx] = el}
+                src={scene.video}
+                loop
+                muted
+                autoPlay={idx === 0}
+                className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${
+                  activeScene === idx ? 'opacity-100' : 'opacity-0 pointer-events-none'
+                }`}
+                style={{ filter: 'brightness(0.7)' }}
+              />
+            ))}
             
             {/* Overlay Gradient */}
             <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 to-purple-900/20" />
+
+            {/* Video Play/Pause Indicator */}
+            {!videosPlaying[activeScene] && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="bg-black/50 backdrop-blur-sm rounded-full p-8">
+                  <Pause className="w-16 h-16 text-white" />
+                </div>
+              </div>
+            )}
 
             {/* Virtual Cursor */}
             <div
@@ -345,7 +388,7 @@ const OBSSimulatorRealistic = ({ cursorX, cursorY, isClicking, gesture }: OBSSim
                 <button className="w-full bg-[#3A3A3F] hover:bg-[#4A4A4F] text-[#EFEFF1] py-1.5 rounded text-xs font-medium">
                   Studio Mode
                 </button>
-                <button className="w-full bg-[#3A3A3F] hover:bg-[#4A4A4F] text-[#EFEFF1] py-1.5 rounded text-xs font-medium">
+                <button className="w-full bg-[#3A3A3F] hover:bg-[#4A4A3F] text-[#EFEFF1] py-1.5 rounded text-xs font-medium">
                   Settings
                 </button>
                 <button className="w-full bg-[#3A3A3F] hover:bg-[#4A4A4F] text-[#EFEFF1] py-1.5 rounded text-xs font-medium">
