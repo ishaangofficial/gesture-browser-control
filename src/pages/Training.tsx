@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/Navbar";
-import GestureCanvasAdvanced from "@/components/GestureCanvasAdvanced";
+import GestureCanvas from "@/components/GestureCanvas";
 import { Camera, CheckCircle2, ArrowRight, Trophy, Target } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -103,11 +103,10 @@ const Training = () => {
       } else {
         if (gestureStartTime === null) {
           setGestureStartTime(Date.now());
-          const newCount = successCount + 1;
-          setSuccessCount(newCount);
-          setProgress((newCount / currentTraining.requiredCount) * 100);
+          setSuccessCount(prev => prev + 1);
+          setProgress((successCount + 1) / currentTraining.requiredCount * 100);
 
-          if (newCount >= currentTraining.requiredCount && !showSuccess) {
+          if (successCount + 1 >= currentTraining.requiredCount && !showSuccess) {
             handleSuccess();
           }
         }
@@ -332,7 +331,7 @@ const Training = () => {
                   style={{ transform: "scaleX(-1)" }}
                 />
                 {isActive && (
-                  <GestureCanvasAdvanced
+                  <GestureCanvas
                     videoRef={videoRef}
                     onGestureDetected={setDetectedGesture}
                     onModeChange={() => {}}
