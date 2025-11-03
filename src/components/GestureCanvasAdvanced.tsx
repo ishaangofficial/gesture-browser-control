@@ -26,6 +26,11 @@ interface PredictedHand {
   confidence: number;
 }
 
+interface CurrentHand {
+  landmarks: HandLandmark[];
+  label: string;
+}
+
 const GestureCanvasAdvanced = ({ 
   videoRef, 
   onGestureDetected, 
@@ -56,7 +61,7 @@ const GestureCanvasAdvanced = ({
       confidence: 0,
     },
     predictedHand: null as PredictedHand | null,
-    trail: [] as { x: number; y: number; opacity: number }[],
+    currentHand: null as CurrentHand | null,
     performanceMetrics: {
       frameStartTime: 0,
       latencies: [] as number[],
@@ -251,6 +256,7 @@ const GestureCanvasAdvanced = ({
       state.scrollMode = false;
       state.zoomPrevDist = null;
       state.predictedHand = null;
+      state.currentHand = null;
       onModeChange("Ready");
       onGestureDetected("None");
       
@@ -260,6 +266,16 @@ const GestureCanvasAdvanced = ({
     }
 
     const handCount = results.multiHandLandmarks.length;
+
+    // Store current hand for rendering
+    if (handCount >= 1) {
+      const hand = results.multiHandLandmarks[0];
+      const label = (results.multiHandedness?.[0] as any)?.label || "Right";
+      state.currentHand = {
+        landmarks: hand as HandLandmark[],
+        label: label,
+      };
+    }
 
     // NEW SINGLE-HAND GESTURES
     if (handCount === 1) {
@@ -276,34 +292,6 @@ const GestureCanvasAdvanced = ({
       }
       // Point → Mute/Unmute Microphone
       else if (isPointGesture(lm)) {
-        const xPx = lm[8].x * 640;
-        const yPx = lm[8].y * 480;
-
-        // Calculate velocity for smooth cursor
-        const deltaX = xPx - state.prevX;
-        const deltaY = yPx - state.prevY;
-        const acceleration = 0.35;
-        
-        state.velocityX = state.velocityX * 0.7 + deltaX * acceleration;
-        state.velocityY = state.velocityY * 0.7 + deltaY * acceleration;
-
-        const speed = Math.sqrt(state.velocityX ** 2 + state.velocityY ** 2);
-        const filtered = kalmanFilter.filter(xPx, yPx, lm[8].z, state.velocityX, state.velocityY);
-
-        const smoothing = speed > 500 ? 2 : speed < 50 ? 4 : 3;
-        state.virtualCursorX = state.prevX + (filtered.x - state.prevX) / smoothing + filtered.vx;
-        state.virtualCursorY = state.prevY + (filtered.y - state.prevY) / smoothing + filtered.vy;
-
-        state.prevX = state.virtualCursorX;
-        state.prevY = state.virtualCursorY;
-
-        const screenX = (1 - state.virtualCursorX / 640) * window.innerWidth;
-        const screenY = (state.virtualCursorY / 480) * window.innerHeight;
-
-        if (onCursorMove) {
-          onCursorMove(screenX, screenY);
-        }
-
         confirmGesture("Point", 0.92, () => {
           onGestureDetected("Point");
           onModeChange("👉 POINT");
@@ -367,97 +355,80 @@ const GestureCanvasAdvanced = ({
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw trail
-    state.trail.forEach((point, i) => {
-      const size = 2 + i * 0.3;
-      ctx.fillStyle = `rgba(0, 255, 255, ${point.opacity * 0.6})`;
-      ctx.beginPath();
-      ctx.arc(point.x, point.y, size, 0, 2 * Math.PI);
-      ctx.fill();
-    });
+    // Draw current hand landmarks (actual detected hand)
+    if (state.currentHand) {
+      drawHandLandmarks(ctx, state.currentHand.landmarks);
+    }
 
     // Draw predicted hand (ghost)
     if (state.predictedHand) {
       drawGhostHand(ctx, state.predictedHand);
     }
 
-    // Draw virtual cursor with glow
-    drawVirtualCursor(ctx, state.virtualCursorX, state.virtualCursorY);
-
-    // Draw confidence glow
+    // Draw confidence glow around index finger tip
     const confidence = state.gestureConfirmation.confidence;
-    if (confidence > 0) {
-      const color = confidence > 0.9 ? "0, 255, 0" : confidence > 0.7 ? "255, 255, 0" : "255, 0, 0";
-      ctx.shadowBlur = 20 * confidence;
-      ctx.shadowColor = `rgba(${color}, 0.8)`;
-      ctx.strokeStyle = `rgba(${color}, ${confidence})`;
-      ctx.lineWidth = 3;
+    if (confidence > 0 && state.currentHand) {
+      const indexTip = state.currentHand.landmarks[8];
+      const x = indexTip.x * 640;
+      const y = indexTip.y * 480;
+      
+      const color = confidence > 0.9 ? "59, 255, 59" : confidence > 0.7 ? "255, 255, 59" : "255, 59, 59";
+      ctx.shadowBlur = 25 * confidence;
+      ctx.shadowColor = `rgba(${color}, 0.9)`;
+      ctx.strokeStyle = `rgba(${color}, ${confidence * 0.8})`;
+      ctx.lineWidth = 4;
       ctx.beginPath();
-      ctx.arc(state.virtualCursorX, state.virtualCursorY, 30, 0, 2 * Math.PI);
+      ctx.arc(x, y, 35, 0, 2 * Math.PI);
       ctx.stroke();
       ctx.shadowBlur = 0;
     }
   };
 
-  const drawGhostHand = (ctx: CanvasRenderingContext2D, predictedHand: PredictedHand) => {
-    const landmarks = predictedHand.landmarks;
-    const alpha = Math.max(0.2, predictedHand.confidence);
-
-    // Draw shadow landmarks (blue filled circles, no skeleton)
+  const drawHandLandmarks = (ctx: CanvasRenderingContext2D, landmarks: HandLandmark[]) => {
+    // Draw blue shadow landmarks for actual detected hand
     landmarks.forEach((lm, i) => {
-      const baseSize = i === 8 ? 8 : 5; // Larger for index finger tip
+      const baseSize = i === 8 ? 10 : 6; // Larger for index finger tip
       
       // Outer shadow glow
       ctx.shadowBlur = 15;
-      ctx.shadowColor = `rgba(59, 130, 246, ${alpha * 0.8})`; // Blue glow
+      ctx.shadowColor = `rgba(59, 130, 246, 0.9)`; // Blue glow
       
       // Draw filled circle
-      ctx.fillStyle = `rgba(59, 130, 246, ${alpha * 0.7})`; // Blue color
+      ctx.fillStyle = `rgba(59, 130, 246, 0.85)`; // Solid blue
       ctx.beginPath();
       ctx.arc(lm.x * 640, lm.y * 480, baseSize, 0, 2 * Math.PI);
       ctx.fill();
       
       // Inner highlight
       ctx.shadowBlur = 0;
-      ctx.fillStyle = `rgba(147, 197, 253, ${alpha * 0.5})`; // Lighter blue
+      ctx.fillStyle = `rgba(147, 197, 253, 0.7)`; // Lighter blue center
       ctx.beginPath();
-      ctx.arc(lm.x * 640, lm.y * 480, baseSize * 0.4, 0, 2 * Math.PI);
+      ctx.arc(lm.x * 640, lm.y * 480, baseSize * 0.5, 0, 2 * Math.PI);
       ctx.fill();
     });
     
     ctx.shadowBlur = 0; // Reset shadow
   };
 
-  const drawVirtualCursor = (ctx: CanvasRenderingContext2D, x: number, y: number) => {
-    // Outer ring
-    ctx.strokeStyle = "rgba(0, 255, 255, 0.9)";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(x, y, 15, 0, 2 * Math.PI);
-    ctx.stroke();
+  const drawGhostHand = (ctx: CanvasRenderingContext2D, predictedHand: PredictedHand) => {
+    const landmarks = predictedHand.landmarks;
+    const alpha = Math.max(0.15, predictedHand.confidence * 0.5);
 
-    // Crosshair
-    ctx.beginPath();
-    ctx.moveTo(x - 20, y);
-    ctx.lineTo(x - 5, y);
-    ctx.moveTo(x + 5, y);
-    ctx.lineTo(x + 20, y);
-    ctx.moveTo(x, y - 20);
-    ctx.lineTo(x, y - 5);
-    ctx.moveTo(x, y + 5);
-    ctx.lineTo(x, y + 20);
-    ctx.stroke();
-
-    // Center glow
-    ctx.shadowBlur = 15;
-    ctx.shadowColor = "rgba(0, 255, 255, 0.8)";
-    ctx.fillStyle = "rgba(0, 255, 255, 0.4)";
-    ctx.beginPath();
-    ctx.arc(x, y, 8, 0, 2 * Math.PI);
-    ctx.fill();
+    // Draw semi-transparent predicted landmarks
+    landmarks.forEach((lm, i) => {
+      const baseSize = i === 8 ? 8 : 5;
+      
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = `rgba(147, 197, 253, ${alpha * 0.6})`;
+      
+      ctx.fillStyle = `rgba(147, 197, 253, ${alpha * 0.4})`; // Very transparent light blue
+      ctx.beginPath();
+      ctx.arc(lm.x * 640, lm.y * 480, baseSize, 0, 2 * Math.PI);
+      ctx.fill();
+    });
+    
     ctx.shadowBlur = 0;
   };
-
   return (
     <canvas
       ref={canvasRef}

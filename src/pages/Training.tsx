@@ -83,9 +83,7 @@ const Training = () => {
     }
 
     const expectedGesture = currentTraining.gesture;
-    const matchesGesture = detectedGesture.includes(expectedGesture.split(" ")[0]) || 
-                          (expectedGesture === "Grab & Drag" && detectedGesture === "Grab & Drag") ||
-                          (expectedGesture === "Zoom" && (detectedGesture === "Zoom In" || detectedGesture === "Zoom Out"));
+    const matchesGesture = detectedGesture.includes(expectedGesture.split(" ")[0]);
 
     if (matchesGesture) {
       if (currentTraining.type === "duration") {
@@ -101,12 +99,15 @@ const Training = () => {
           }
         }
       } else {
+        // Count type - only increment once per gesture detection
         if (gestureStartTime === null) {
           setGestureStartTime(Date.now());
-          setSuccessCount(prev => prev + 1);
-          setProgress((successCount + 1) / currentTraining.requiredCount * 100);
+          const newCount = successCount + 1;
+          setSuccessCount(newCount);
+          const newProgress = (newCount / currentTraining.requiredCount) * 100;
+          setProgress(newProgress);
 
-          if (successCount + 1 >= currentTraining.requiredCount && !showSuccess) {
+          if (newCount >= currentTraining.requiredCount && !showSuccess) {
             handleSuccess();
           }
         }
@@ -114,10 +115,9 @@ const Training = () => {
     } else {
       if (gestureStartTime !== null) {
         setGestureStartTime(null);
-        setProgress(Math.max(0, progress - 10));
       }
     }
-  }, [detectedGesture, gestureStartTime, currentTraining, successCount, progress, showSuccess]);
+  }, [detectedGesture, gestureStartTime, currentTraining, successCount, showSuccess]);
 
   useEffect(() => {
     if (currentTraining.type === "count" && gestureStartTime !== null) {
@@ -285,7 +285,7 @@ const Training = () => {
                 </div>
                 <div className="h-4 bg-muted rounded-full overflow-hidden">
                   <div
-                    className={`h-full transition-all duration-300 ${getProgressColor()}`}
+                    className={`h-full transition-all duration-300 ease-out ${getProgressColor()}`}
                     style={{ width: `${progress}%` }}
                   />
                 </div>
