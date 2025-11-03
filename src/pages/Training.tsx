@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/Navbar";
-import GestureCanvas from "@/components/GestureCanvas";
+import GestureCanvasAdvanced from "@/components/GestureCanvasAdvanced";
 import { Camera, CheckCircle2, ArrowRight, Trophy, Target } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -23,51 +23,51 @@ const Training = () => {
 
   const trainingSteps = [
     {
-      title: "Cursor Movement",
-      gesture: "Cursor Move",
-      instruction: "Point with your index finger. Keep other fingers down.",
-      details: "Move your hand to control the cursor smoothly across the screen",
-      icon: "👆",
+      title: "Open Palm",
+      gesture: "Open Palm",
+      instruction: "Open your palm completely with all five fingers extended.",
+      details: "Spread your fingers wide - Start/Stop Recording",
+      icon: "✋",
       requiredDuration: 6000,
       requiredCount: 1,
       type: "duration"
     },
     {
-      title: "Left Click",
-      gesture: "Left Click",
-      instruction: "Extend index and middle fingers. Pinch them together.",
-      details: "Bring the tips of index and middle fingers close together to click",
+      title: "Point Gesture",
+      gesture: "Point",
+      instruction: "Point with your index finger. Keep other fingers down.",
+      details: "Extend only index finger - Mute/Unmute Microphone",
+      icon: "👉",
+      requiredDuration: 6000,
+      requiredCount: 1,
+      type: "duration"
+    },
+    {
+      title: "L-Shape",
+      gesture: "L-Shape",
+      instruction: "Extend your thumb and index finger to make an L shape.",
+      details: "Form clear L with thumb and index - Switch to Next Scene",
+      icon: "🔲",
+      requiredDuration: 0,
+      requiredCount: 3,
+      type: "count"
+    },
+    {
+      title: "OK Sign",
+      gesture: "OK Sign",
+      instruction: "Touch thumb and index tips together to form a circle.",
+      details: "Extend other fingers while making circle - Start/Stop Streaming",
+      icon: "👌",
+      requiredDuration: 0,
+      requiredCount: 3,
+      type: "count"
+    },
+    {
+      title: "Pinch",
+      gesture: "Pinch",
+      instruction: "Bring your thumb and index finger close together.",
+      details: "Pinch fingers together - Pause Gesture Detection",
       icon: "🤏",
-      requiredDuration: 0,
-      requiredCount: 3,
-      type: "count"
-    },
-    {
-      title: "Right Click",
-      gesture: "Right Click",
-      instruction: "Open your palm completely with all five fingers extended.",
-      details: "Spread your fingers wide apart for better detection",
-      icon: "✋",
-      requiredDuration: 0,
-      requiredCount: 3,
-      type: "count"
-    },
-    {
-      title: "Both Palms",
-      gesture: "Grab & Drag",
-      instruction: "Show both hands with palms open simultaneously.",
-      details: "Both hands must be visible with all fingers extended",
-      icon: "🙌",
-      requiredDuration: 0,
-      requiredCount: 3,
-      type: "count"
-    },
-    {
-      title: "Zoom Gesture",
-      gesture: "Zoom",
-      instruction: "Make 'L' shape with both hands (thumb + index).",
-      details: "Move hands apart to zoom in, together to zoom out",
-      icon: "🔍",
       requiredDuration: 0,
       requiredCount: 3,
       type: "count"
@@ -331,7 +331,7 @@ const Training = () => {
                   style={{ transform: "scaleX(-1)" }}
                 />
                 {isActive && (
-                  <GestureCanvas
+                  <GestureCanvasAdvanced
                     videoRef={videoRef}
                     onGestureDetected={setDetectedGesture}
                     onModeChange={() => {}}

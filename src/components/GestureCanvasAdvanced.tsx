@@ -186,22 +186,54 @@ const GestureCanvasAdvanced = ({
     return lm[tipIdx].y < lm[pipIdx].y - 0.02 && lm[pipIdx].y < lm[mcpIdx].y - 0.01;
   };
 
-  const isZoomGesture = (lm: HandLandmark[], label: string): boolean => {
-    const thumbUp = label === "Right" ? lm[4].x < lm[3].x : lm[4].x > lm[3].x;
-    const indexUp = isFingerExtended(lm, 8, 6, 5);
-    const middleUp = isFingerExtended(lm, 12, 10, 9);
-    const ringUp = isFingerExtended(lm, 16, 14, 13);
-    const pinkyUp = isFingerExtended(lm, 20, 18, 17);
-    return thumbUp && indexUp && !middleUp && !ringUp && !pinkyUp;
-  };
-
-  const isPalmOpen = (lm: HandLandmark[], label: string): boolean => {
+  // NEW GESTURES
+  const isOpenPalm = (lm: HandLandmark[], label: string): boolean => {
     const thumbOk = label === "Right" ? lm[4].x < lm[3].x : lm[4].x > lm[3].x;
     const indexUp = isFingerExtended(lm, 8, 6, 5);
     const middleUp = isFingerExtended(lm, 12, 10, 9);
     const ringUp = isFingerExtended(lm, 16, 14, 13);
     const pinkyUp = isFingerExtended(lm, 20, 18, 17);
     return thumbOk && indexUp && middleUp && ringUp && pinkyUp;
+  };
+
+  const isPointGesture = (lm: HandLandmark[]): boolean => {
+    const indexUp = isFingerExtended(lm, 8, 6, 5);
+    const middleUp = isFingerExtended(lm, 12, 10, 9);
+    const ringUp = isFingerExtended(lm, 16, 14, 13);
+    const pinkyUp = isFingerExtended(lm, 20, 18, 17);
+    return indexUp && !middleUp && !ringUp && !pinkyUp;
+  };
+
+  const isLShapeGesture = (lm: HandLandmark[], label: string): boolean => {
+    const thumbExtended = label === "Right" ? lm[4].x < lm[3].x - 0.05 : lm[4].x > lm[3].x + 0.05;
+    const indexUp = isFingerExtended(lm, 8, 6, 5);
+    const middleUp = isFingerExtended(lm, 12, 10, 9);
+    const ringUp = isFingerExtended(lm, 16, 14, 13);
+    const pinkyUp = isFingerExtended(lm, 20, 18, 17);
+    return thumbExtended && indexUp && !middleUp && !ringUp && !pinkyUp;
+  };
+
+  const isOKSignGesture = (lm: HandLandmark[]): boolean => {
+    const thumbTip = lm[4];
+    const indexTip = lm[8];
+    const distance = Math.sqrt(
+      Math.pow((thumbTip.x - indexTip.x) * 640, 2) + 
+      Math.pow((thumbTip.y - indexTip.y) * 480, 2)
+    );
+    const middleUp = isFingerExtended(lm, 12, 10, 9);
+    const ringUp = isFingerExtended(lm, 16, 14, 13);
+    const pinkyUp = isFingerExtended(lm, 20, 18, 17);
+    return distance < 30 && middleUp && ringUp && pinkyUp;
+  };
+
+  const isPinchGesture = (lm: HandLandmark[]): boolean => {
+    const thumbTip = lm[4];
+    const indexTip = lm[8];
+    const distance = Math.sqrt(
+      Math.pow((thumbTip.x - indexTip.x) * 640, 2) + 
+      Math.pow((thumbTip.y - indexTip.y) * 480, 2)
+    );
+    return distance < 25;
   };
 
   const processResults = (results: Results) => {
@@ -229,69 +261,42 @@ const GestureCanvasAdvanced = ({
 
     const handCount = results.multiHandLandmarks.length;
 
-    // SINGLE-HAND GESTURES
+    // NEW SINGLE-HAND GESTURES
     if (handCount === 1) {
       const hand = results.multiHandLandmarks[0];
       const label = (results.multiHandedness?.[0] as any)?.label || "Right";
       const lm = hand as HandLandmark[];
 
-      const indexUp = isFingerExtended(lm, 8, 6, 5);
-      const middleUp = isFingerExtended(lm, 12, 10, 9);
-      const openPalm = isPalmOpen(lm, label);
-
-      // CURSOR MODE with prediction
-      if (indexUp && !middleUp && !openPalm) {
+      // Open Palm → Start/Stop Recording
+      if (isOpenPalm(lm, label)) {
+        confirmGesture("Open Palm", 0.95, () => {
+          onGestureDetected("Open Palm");
+          onModeChange("✋ OPEN PALM");
+        });
+      }
+      // Point → Mute/Unmute Microphone
+      else if (isPointGesture(lm)) {
         const xPx = lm[8].x * 640;
         const yPx = lm[8].y * 480;
 
-        // Calculate velocity and acceleration
+        // Calculate velocity for smooth cursor
         const deltaX = xPx - state.prevX;
         const deltaY = yPx - state.prevY;
         const acceleration = 0.35;
-        const prevVx = state.velocityX;
-        const prevVy = state.velocityY;
         
         state.velocityX = state.velocityX * 0.7 + deltaX * acceleration;
         state.velocityY = state.velocityY * 0.7 + deltaY * acceleration;
 
-        const ax = state.velocityX - prevVx;
-        const ay = state.velocityY - prevVy;
-
-        // Apply Kalman filter
         const speed = Math.sqrt(state.velocityX ** 2 + state.velocityY ** 2);
         const filtered = kalmanFilter.filter(xPx, yPx, lm[8].z, state.velocityX, state.velocityY);
 
-        // Smooth interpolation
         const smoothing = speed > 500 ? 2 : speed < 50 ? 4 : 3;
         state.virtualCursorX = state.prevX + (filtered.x - state.prevX) / smoothing + filtered.vx;
         state.virtualCursorY = state.prevY + (filtered.y - state.prevY) / smoothing + filtered.vy;
 
-        // Predict future position (2 frames ahead)
-        const predictedX = state.virtualCursorX + state.velocityX * 0.033 * 2 + ax * 0.033 * 0.033 * 4;
-        const predictedY = state.virtualCursorY + state.velocityY * 0.033 * 2 + ay * 0.033 * 0.033 * 4;
-
-        // Create predicted hand
-        const predictedLandmarks = (hand as HandLandmark[]).map((landmark, i) => ({
-          x: i === 8 ? predictedX / 640 : landmark.x + (predictedX - xPx) / 640 * 0.3,
-          y: i === 8 ? predictedY / 480 : landmark.y + (predictedY - yPx) / 480 * 0.3,
-          z: landmark.z,
-        }));
-
-        const predictionConfidence = Math.max(0, 1 - speed / 1000);
-        state.predictedHand = {
-          landmarks: predictedLandmarks,
-          confidence: predictionConfidence,
-        };
-
-        // Add to trail
-        state.trail.push({ x: state.virtualCursorX, y: state.virtualCursorY, opacity: 1 });
-        if (state.trail.length > 15) state.trail.shift();
-        state.trail = state.trail.map(p => ({ ...p, opacity: p.opacity * 0.85 }));
-
         state.prevX = state.virtualCursorX;
         state.prevY = state.virtualCursorY;
 
-        // Map to screen coordinates
         const screenX = (1 - state.virtualCursorX / 640) * window.innerWidth;
         const screenY = (state.virtualCursorY / 480) * window.innerHeight;
 
@@ -299,97 +304,30 @@ const GestureCanvasAdvanced = ({
           onCursorMove(screenX, screenY);
         }
 
-        confirmGesture("Cursor Move", 0.88, () => {
-          onGestureDetected("Cursor Move");
-          onModeChange("🖱️ CURSOR MODE");
+        confirmGesture("Point", 0.92, () => {
+          onGestureDetected("Point");
+          onModeChange("👉 POINT");
         });
       }
-      // LEFT CLICK
-      else if (indexUp && middleUp && !openPalm) {
-        const x1 = lm[8].x * 640;
-        const y1 = lm[8].y * 480;
-        const x2 = lm[12].x * 640;
-        const y2 = lm[12].y * 480;
-        const dist = Math.hypot(x2 - x1, y2 - y1);
-
-        if (!state.pinchEngaged && dist < 35) {
-          state.pinchEngaged = true;
-        }
-
-        if (state.pinchEngaged && dist > 50) {
-          state.pinchEngaged = false;
-        }
-
-        if (state.pinchEngaged) {
-          confirmGesture("Left Click", 0.9, () => {
-            onGestureDetected("Left Click");
-            onModeChange("👆 CLICK");
-          });
-        }
-      } else {
-        state.pinchEngaged = false;
-      }
-      
-      // RIGHT CLICK
-      if (openPalm) {
-        confirmGesture("Right Click", 0.87, () => {
-          onGestureDetected("Right Click");
-          onModeChange("✋ RIGHT CLICK");
+      // L-Shape → Switch to Next Scene
+      else if (isLShapeGesture(lm, label)) {
+        confirmGesture("L-Shape", 0.90, () => {
+          onGestureDetected("L-Shape");
+          onModeChange("🔲 L-SHAPE");
         });
       }
-    }
-    // TWO-HAND GESTURES
-    else if (handCount === 2) {
-      const landmarks = results.multiHandLandmarks;
-      const handedness = results.multiHandedness;
-
-      const zoomStates: boolean[] = [];
-      const openStates: boolean[] = [];
-      const pts: [number, number][] = [];
-
-      landmarks.forEach((hand, i) => {
-        const label = (handedness?.[i] as any)?.label || "Right";
-        const lm = hand as HandLandmark[];
-        zoomStates.push(isZoomGesture(lm, label));
-        openStates.push(isPalmOpen(lm, label));
-        pts.push([lm[8].x * 640, lm[8].y * 480]);
-      });
-
-      // GRAB GESTURE
-      if (openStates[0] && openStates[1]) {
-        confirmGesture("Grab & Drag", 0.95, () => {
-          const avgX = (pts[0][0] + pts[1][0]) / 2;
-          const avgY = (pts[0][1] + pts[1][1]) / 2;
-
-          state.virtualCursorX = avgX;
-          state.virtualCursorY = avgY;
-          state.grabMode = true;
-          state.zoomPrevDist = null;
-
-          onGestureDetected("Grab & Drag");
-          onModeChange("🖐️ GRAB MODE");
+      // OK Sign → Start/Stop Streaming
+      else if (isOKSignGesture(lm)) {
+        confirmGesture("OK Sign", 0.88, () => {
+          onGestureDetected("OK Sign");
+          onModeChange("👌 OK SIGN");
         });
       }
-      // ZOOM GESTURE
-      else if (zoomStates[0] && zoomStates[1]) {
-        confirmGesture("Zoom", 0.92, () => {
-          const [x1, y1] = pts[0];
-          const [x2, y2] = pts[1];
-          const currDist = Math.hypot(x2 - x1, y2 - y1);
-
-          if (state.zoomPrevDist === null) {
-            state.zoomPrevDist = currDist;
-          } else {
-            const delta = currDist - state.zoomPrevDist;
-            if (Math.abs(delta) > 10) {
-              const direction = delta > 0 ? "Zoom In" : "Zoom Out";
-              onGestureDetected(direction);
-              state.zoomPrevDist = currDist;
-            }
-          }
-
-          state.grabMode = false;
-          onModeChange("🔍 ZOOM MODE");
+      // Pinch → Pause Gesture Detection
+      else if (isPinchGesture(lm)) {
+        confirmGesture("Pinch", 0.87, () => {
+          onGestureDetected("Pinch");
+          onModeChange("🤏 PINCH");
         });
       }
     }
@@ -465,34 +403,29 @@ const GestureCanvasAdvanced = ({
     const landmarks = predictedHand.landmarks;
     const alpha = Math.max(0.2, predictedHand.confidence);
 
-    // Draw connections
-    const connections = [
-      [0, 1], [1, 2], [2, 3], [3, 4],
-      [0, 5], [5, 6], [6, 7], [7, 8],
-      [0, 9], [9, 10], [10, 11], [11, 12],
-      [0, 13], [13, 14], [14, 15], [15, 16],
-      [0, 17], [17, 18], [18, 19], [19, 20],
-      [5, 9], [9, 13], [13, 17]
-    ];
-
-    ctx.strokeStyle = `rgba(0, 255, 255, ${alpha * 0.3})`;
-    ctx.lineWidth = 2;
-    ctx.setLineDash([5, 5]);
-    connections.forEach(([start, end]) => {
-      ctx.beginPath();
-      ctx.moveTo(landmarks[start].x * 640, landmarks[start].y * 480);
-      ctx.lineTo(landmarks[end].x * 640, landmarks[end].y * 480);
-      ctx.stroke();
-    });
-    ctx.setLineDash([]);
-
-    // Draw landmarks
+    // Draw shadow landmarks (blue filled circles, no skeleton)
     landmarks.forEach((lm, i) => {
-      ctx.fillStyle = i === 8 ? `rgba(255, 0, 255, ${alpha})` : `rgba(0, 255, 255, ${alpha * 0.5})`;
+      const baseSize = i === 8 ? 8 : 5; // Larger for index finger tip
+      
+      // Outer shadow glow
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = `rgba(59, 130, 246, ${alpha * 0.8})`; // Blue glow
+      
+      // Draw filled circle
+      ctx.fillStyle = `rgba(59, 130, 246, ${alpha * 0.7})`; // Blue color
       ctx.beginPath();
-      ctx.arc(lm.x * 640, lm.y * 480, i === 8 ? 6 : 3, 0, 2 * Math.PI);
+      ctx.arc(lm.x * 640, lm.y * 480, baseSize, 0, 2 * Math.PI);
+      ctx.fill();
+      
+      // Inner highlight
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = `rgba(147, 197, 253, ${alpha * 0.5})`; // Lighter blue
+      ctx.beginPath();
+      ctx.arc(lm.x * 640, lm.y * 480, baseSize * 0.4, 0, 2 * Math.PI);
       ctx.fill();
     });
+    
+    ctx.shadowBlur = 0; // Reset shadow
   };
 
   const drawVirtualCursor = (ctx: CanvasRenderingContext2D, x: number, y: number) => {

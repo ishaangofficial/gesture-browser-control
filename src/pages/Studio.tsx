@@ -161,11 +161,11 @@ const Studio = () => {
                 <div className="space-y-1">
                   <h3 className="font-semibold">How to control OBS</h3>
                   <ul className="text-sm text-muted-foreground space-y-1">
-                    <li>• <strong>Point</strong> (index finger) to move cursor</li>
-                    <li>• <strong>Pinch</strong> (index + middle) to left click</li>
-                    <li>• <strong>Open palm</strong> to right click (toggle mic mute)</li>
-                    <li>• <strong>Both palms open</strong> to start/stop streaming</li>
-                    <li>• <strong>Zoom gesture</strong> (L-shape both hands) to start/stop recording</li>
+                    <li>• ✋ <strong>Open Palm:</strong> Start/Stop Recording</li>
+                    <li>• 👉 <strong>Point:</strong> Mute/Unmute Microphone</li>
+                    <li>• 🔲 <strong>L-Shape:</strong> Switch to Next Scene</li>
+                    <li>• 👌 <strong>OK Sign:</strong> Start/Stop Streaming</li>
+                    <li>• 🤏 <strong>Pinch:</strong> Pause Gesture Detection</li>
                   </ul>
                 </div>
               </div>
@@ -246,20 +246,24 @@ const Studio = () => {
               <h3 className="font-semibold mb-3 text-sm">Quick Gestures</h3>
               <div className="space-y-2 text-xs">
                 <div className="clay-inset p-3 flex items-center justify-between rounded-lg">
+                  <span className="text-muted-foreground">✋ Open Palm</span>
+                  <span>Record</span>
+                </div>
+                <div className="clay-inset p-3 flex items-center justify-between rounded-lg">
                   <span className="text-muted-foreground">👉 Point</span>
-                  <span>Cursor</span>
+                  <span>Mute Mic</span>
+                </div>
+                <div className="clay-inset p-3 flex items-center justify-between rounded-lg">
+                  <span className="text-muted-foreground">🔲 L-Shape</span>
+                  <span>Next Scene</span>
+                </div>
+                <div className="clay-inset p-3 flex items-center justify-between rounded-lg">
+                  <span className="text-muted-foreground">👌 OK Sign</span>
+                  <span>Stream</span>
                 </div>
                 <div className="clay-inset p-3 flex items-center justify-between rounded-lg">
                   <span className="text-muted-foreground">🤏 Pinch</span>
-                  <span>Click</span>
-                </div>
-                <div className="clay-inset p-3 flex items-center justify-between rounded-lg">
-                  <span className="text-muted-foreground">✋ Palm</span>
-                  <span>Right Click</span>
-                </div>
-                <div className="clay-inset p-3 flex items-center justify-between rounded-lg">
-                  <span className="text-muted-foreground">🙌 Both palms</span>
-                  <span>Stream</span>
+                  <span>Pause</span>
                 </div>
               </div>
             </Card>

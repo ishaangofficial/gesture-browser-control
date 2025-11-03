@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Video, Volume2, VolumeX, Eye, EyeOff, Lock, Settings as SettingsIcon, Plus, Minus, ChevronUp, ChevronDown } from "lucide-react";
+import { toast } from "sonner";
 import scene1 from "@/assets/obs-scene-1.jpg";
 import scene2 from "@/assets/obs-scene-2.jpg";
 import scene3 from "@/assets/obs-scene-3.jpg";
@@ -10,6 +11,7 @@ interface OBSSimulatorProps {
   cursorY: number;
   isClicking: boolean;
   gesture: string;
+  onGesture?: (callback: (gesture: string) => void) => () => void;
 }
 
 const OBSSimulatorRealistic = ({ cursorX, cursorY, isClicking, gesture }: OBSSimulatorProps) => {
@@ -38,68 +40,35 @@ const OBSSimulatorRealistic = ({ cursorX, cursorY, isClicking, gesture }: OBSSim
     if (gesture === prevGestureRef.current) return;
     prevGestureRef.current = gesture;
 
-    if (gesture === "Left Click" && isClicking) {
-      handleClick(cursorX, cursorY);
+    // NEW GESTURE MAPPINGS
+    if (gesture === "Open Palm") {
+      const newState = !isRecording;
+      setIsRecording(newState);
+      toast.success(newState ? "🔴 Recording Started" : "⏹️ Recording Stopped");
     }
 
-    if (gesture === "Right Click") {
-      setIsMicMuted(prev => !prev);
+    if (gesture === "Point") {
+      const newState = !isMicMuted;
+      setIsMicMuted(newState);
+      toast.success(newState ? "🔇 Microphone Muted" : "🎤 Microphone Unmuted");
     }
 
-    if (gesture === "Grab & Drag") {
-      setIsStreaming(prev => !prev);
+    if (gesture === "L-Shape") {
+      const nextScene = (activeScene + 1) % scenes.length;
+      setActiveScene(nextScene);
+      toast.success(`📺 Switched to ${scenes[nextScene].name}`);
     }
 
-    if (gesture === "Zoom In") {
-      setActiveScene(prev => (prev + 1) % scenes.length);
+    if (gesture === "OK Sign") {
+      const newState = !isStreaming;
+      setIsStreaming(newState);
+      toast.success(newState ? "🔴 Stream Started" : "⏹️ Stream Stopped");
     }
 
-    if (gesture === "Zoom Out") {
-      setActiveScene(prev => (prev - 1 + scenes.length) % scenes.length);
+    if (gesture === "Pinch") {
+      toast.info("⏸️ Gesture Detection Paused");
     }
-
-    if (gesture === "Scroll Up") {
-      setIsRecording(prev => !prev);
-    }
-
-    if (gesture === "Scroll Down") {
-      setIsDesktopMuted(prev => !prev);
-    }
-  }, [gesture, isClicking, cursorX, cursorY]);
-
-  const handleClick = (x: number, y: number) => {
-    if (!containerRef.current) return;
-    
-    const rect = containerRef.current.getBoundingClientRect();
-    const relX = x - rect.left;
-    const relY = y - rect.top;
-
-    // Check scene buttons
-    const sceneButtons = document.querySelectorAll('[data-obs-scene]');
-    sceneButtons.forEach((btn, idx) => {
-      const btnRect = btn.getBoundingClientRect();
-      if (x >= btnRect.left && x <= btnRect.right && y >= btnRect.top && y <= btnRect.bottom) {
-        setActiveScene(idx);
-      }
-    });
-
-    // Check control buttons
-    const streamBtn = document.querySelector('[data-obs-stream]');
-    if (streamBtn) {
-      const btnRect = streamBtn.getBoundingClientRect();
-      if (x >= btnRect.left && x <= btnRect.right && y >= btnRect.top && y <= btnRect.bottom) {
-        setIsStreaming(prev => !prev);
-      }
-    }
-
-    const recordBtn = document.querySelector('[data-obs-record]');
-    if (recordBtn) {
-      const btnRect = recordBtn.getBoundingClientRect();
-      if (x >= btnRect.left && x <= btnRect.right && y >= btnRect.top && y <= btnRect.bottom) {
-        setIsRecording(prev => !prev);
-      }
-    }
-  };
+  }, [gesture, activeScene, isRecording, isMicMuted, isStreaming]);
 
   return (
     <div ref={containerRef} className="relative w-full h-full bg-[#18181B] rounded-lg overflow-hidden flex flex-col text-[13px]">
