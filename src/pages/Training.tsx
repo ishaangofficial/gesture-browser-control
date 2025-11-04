@@ -63,11 +63,11 @@ const Training = () => {
       type: "count"
     },
     {
-      title: "Pinch",
-      gesture: "Pinch",
-      instruction: "Bring your thumb and index finger close together.",
-      details: "Pinch fingers together - Pause Gesture Detection",
-      icon: "🤏",
+      title: "Pinky",
+      gesture: "Pinky",
+      instruction: "Extend only your pinky finger, keeping all other fingers down.",
+      details: "Pinky finger up - Pause Gesture Detection",
+      icon: "🤙",
       requiredDuration: 0,
       requiredCount: 3,
       type: "count"

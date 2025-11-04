@@ -65,7 +65,7 @@ const OBSSimulatorRealistic = ({ cursorX, cursorY, isClicking, gesture }: OBSSim
       toast.success(newState ? "🔴 Stream Started" : "⏹️ Stream Stopped");
     }
 
-    if (gesture === "Pinch") {
+    if (gesture === "Pinky") {
       toast.info("⏸️ Gesture Detection Paused");
     }
   }, [gesture, activeScene, isRecording, isMicMuted, isStreaming]);

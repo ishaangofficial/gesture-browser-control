@@ -1,6 +1,5 @@
-import { useEffect, useRef, RefObject, useState } from "react";
+import { useEffect, useRef, RefObject } from "react";
 import type { Results, NormalizedLandmarkList } from "@mediapipe/hands";
-import { MultiAxisKalman } from "@/lib/kalman";
 
 interface GestureCanvasProps {
   videoRef: RefObject<HTMLVideoElement>;
@@ -39,36 +38,35 @@ const GestureCanvasAdvanced = ({
   onPerformanceUpdate 
 }: GestureCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [kalmanFilter] = useState(() => new MultiAxisKalman());
-  
   const gestureStateRef = useRef({
-    prevX: 0,
-    prevY: 0,
-    velocityX: 0,
-    velocityY: 0,
-    zoomPrevDist: null as number | null,
-    grabMode: false,
-    scrollMode: false,
-    scrollStartY: null as number | null,
-    virtualCursorX: 320,
-    virtualCursorY: 240,
-    pinchEngaged: false,
     lastProcessTime: 0,
-    gestureConfirmation: {
-      lastGesture: "None",
-      confirmCount: 0,
-      requiredFrames: 3,
-      confidence: 0,
-    },
-    predictedHand: null as PredictedHand | null,
-    currentHand: null as CurrentHand | null,
-    performanceMetrics: {
+    fps: 60,
       frameStartTime: 0,
-      latencies: [] as number[],
-      fps: 60,
-      predictionErrors: [] as number[],
-    },
+    // Safeguards
+    lastGestureTimes: new Map<string, number>(),
+    gestureStartTimes: new Map<string, number>(),
+    previousHandPosition: null as { x: number; y: number } | null,
+    stabilityFrameCount: new Map<string, number>(),
+    // Latest
+    latestLandmarks: null as HandLandmark[] | null,
   });
+
+  const CONFIG = {
+    CONFIDENCE_THRESHOLD: 0.85,
+    DWELL_TIME_MS: 300,
+    COOLDOWN_MS: 500,
+    STABILITY_THRESHOLD: 0.05,
+    STABILITY_FRAMES: 3,
+    ZONE_X_MIN: 0.2,
+    ZONE_X_MAX: 0.8,
+    ZONE_Y_MIN: 0.2,
+    ZONE_Y_MAX: 0.8,
+    // Pixel-based thresholds (from provided code)
+    CAM_WIDTH: 640,
+    CAM_HEIGHT: 480,
+    OK_PINCH_THRESH: 35,      // pixels
+    FINGER_JOIN_THRESH: 40,   // pixels
+  };
 
   useEffect(() => {
     if (!videoRef.current || !canvasRef.current) return;
@@ -76,7 +74,7 @@ const GestureCanvasAdvanced = ({
     let hands: any = null;
     let camera: any = null;
     let isInitialized = false;
-    let animationFrameId: number;
+    let animationFrameId = 0;
 
     const initializeMediaPipe = async () => {
       let attempts = 0;
@@ -89,37 +87,30 @@ const GestureCanvasAdvanced = ({
             });
 
             hands.setOptions({
-              maxNumHands: 2,
-              modelComplexity: 0,
-              minDetectionConfidence: 0.9,
-              minTrackingConfidence: 0.85,
+              maxNumHands: 1,
+              modelComplexity: 1,  // Enhanced from provided code
+              minDetectionConfidence: 0.7,  // Lower threshold from provided code
+              minTrackingConfidence: 0.6,   // Lower threshold from provided code
             });
 
             hands.onResults((results: Results) => {
-              if (isInitialized) {
+              if (!isInitialized) return;
                 const startTime = performance.now();
                 processResults(results);
                 const endTime = performance.now();
-                
-                // Track latency
-                const state = gestureStateRef.current;
-                state.performanceMetrics.latencies.push(endTime - startTime);
-                if (state.performanceMetrics.latencies.length > 60) {
-                  state.performanceMetrics.latencies.shift();
-                }
-              }
+              gestureStateRef.current.fps = 1000 / Math.max(16, endTime - (gestureStateRef.current.frameStartTime || endTime));
             });
 
             camera = new Camera(videoRef.current!, {
               onFrame: async () => {
                 if (videoRef.current && hands && isInitialized) {
                   const now = Date.now();
-                  const state = gestureStateRef.current;
-                  // 30 FPS for MediaPipe processing (33ms)
-                  if (now - state.lastProcessTime >= 33) {
-                    state.lastProcessTime = now;
-                    state.performanceMetrics.frameStartTime = performance.now();
+                  const s = gestureStateRef.current;
+                  if (now - s.lastProcessTime >= 33) {
+                    s.lastProcessTime = now;
+                    s.frameStartTime = performance.now();
                     await hands.send({ image: videoRef.current });
+                    renderCanvas();
                   }
                 }
               },
@@ -129,24 +120,15 @@ const GestureCanvasAdvanced = ({
 
             await camera.start();
             isInitialized = true;
-            console.log("✅ Advanced gesture system initialized");
-
-            // Start render loop
-            const render = () => {
-              renderCanvas();
-              animationFrameId = requestAnimationFrame(render);
-            };
-            render();
-
             return;
-          } catch (error) {
-            console.error("MediaPipe initialization error:", error);
+          } catch (e) {
+            console.error("MediaPipe init error", e);
           }
         }
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(r => setTimeout(r, 100));
         attempts++;
       }
-      console.error("❌ MediaPipe failed to load");
+      console.error("MediaPipe failed to load");
     };
 
     initializeMediaPipe();
@@ -154,193 +136,245 @@ const GestureCanvasAdvanced = ({
     return () => {
       isInitialized = false;
       if (animationFrameId) cancelAnimationFrame(animationFrameId);
-      if (hands) {
-        try {
-          hands.close();
-        } catch (e) {
-          console.error("Error closing hands:", e);
-        }
-      }
-      if (camera) {
-        try {
-          camera.stop();
-        } catch (e) {
-          console.error("Error stopping camera:", e);
-        }
-      }
+      if (hands) try { hands.close(); } catch {}
+      if (camera) try { camera.stop(); } catch {}
     };
   }, [videoRef]);
 
-  const confirmGesture = (gesture: string, confidence: number, callback: () => void) => {
-    const confirmation = gestureStateRef.current.gestureConfirmation;
-    if (confirmation.lastGesture === gesture) {
-      confirmation.confirmCount++;
-      confirmation.confidence = confidence;
-      if (confirmation.confirmCount >= confirmation.requiredFrames && confidence > 0.9) {
-        callback();
-        confirmation.confirmCount = confirmation.requiredFrames;
-      }
-    } else {
-      confirmation.lastGesture = gesture;
-      confirmation.confirmCount = 1;
-      confirmation.confidence = confidence;
+  const uiModeFor = (prettyName: string) => {
+    switch (prettyName) {
+      case "Open Palm": return "✋ OPEN PALM";
+      case "Point": return "👉 POINT";
+      case "L-Shape": return "🔲 L-SHAPE";
+      case "OK Sign": return "👌 OK SIGN";
+      case "Pinky": return "🤙 PINKY";
+      case "Two Fingers": return "✌️ TWO FINGERS";
+      case "Three Fingers": return "🖖 THREE FINGERS";
+      case "Thumb Out": return "👍 THUMB OUT";
+      default: return "Ready";
     }
   };
 
-  const isFingerExtended = (lm: HandLandmark[], tipIdx: number, pipIdx: number, mcpIdx: number): boolean => {
-    return lm[tipIdx].y < lm[pipIdx].y - 0.02 && lm[pipIdx].y < lm[mcpIdx].y - 0.01;
+  // Enhanced gesture detection helpers (from provided code)
+  const toPx = (point: HandLandmark, w: number, h: number): [number, number] => {
+    return [Math.floor(point.x * w), Math.floor(point.y * h)];
   };
 
-  // NEW GESTURES
-  const isOpenPalm = (lm: HandLandmark[], label: string): boolean => {
-    const thumbOk = label === "Right" ? lm[4].x < lm[3].x : lm[4].x > lm[3].x;
-    const indexUp = isFingerExtended(lm, 8, 6, 5);
-    const middleUp = isFingerExtended(lm, 12, 10, 9);
-    const ringUp = isFingerExtended(lm, 16, 14, 13);
-    const pinkyUp = isFingerExtended(lm, 20, 18, 17);
-    return thumbOk && indexUp && middleUp && ringUp && pinkyUp;
+  const distPx = (a: HandLandmark, b: HandLandmark, w: number, h: number): number => {
+    const [ax, ay] = toPx(a, w, h);
+    const [bx, by] = toPx(b, w, h);
+    return Math.hypot(bx - ax, by - ay);
   };
 
-  const isPointGesture = (lm: HandLandmark[]): boolean => {
-    const indexUp = isFingerExtended(lm, 8, 6, 5);
-    const middleUp = isFingerExtended(lm, 12, 10, 9);
-    const ringUp = isFingerExtended(lm, 16, 14, 13);
-    const pinkyUp = isFingerExtended(lm, 20, 18, 17);
-    return indexUp && !middleUp && !ringUp && !pinkyUp;
+  const anglePx = (a: HandLandmark, b: HandLandmark, c: HandLandmark, w: number, h: number): number => {
+    const [ax, ay] = toPx(a, w, h);
+    const [bx, by] = toPx(b, w, h);
+    const [cx, cy] = toPx(c, w, h);
+    const v1 = [ax - bx, ay - by];
+    const v2 = [cx - bx, cy - by];
+    const norm1 = Math.hypot(v1[0], v1[1]);
+    const norm2 = Math.hypot(v2[0], v2[1]);
+    const denom = norm1 * norm2;
+    if (denom === 0) return 180.0;
+    const dot = v1[0] * v2[0] + v1[1] * v2[1];
+    const cosang = Math.max(-1.0, Math.min(1.0, dot / denom));
+    return Math.acos(cosang) * (180 / Math.PI);
   };
 
-  const isLShapeGesture = (lm: HandLandmark[], label: string): boolean => {
-    const thumbExtended = label === "Right" ? lm[4].x < lm[3].x - 0.05 : lm[4].x > lm[3].x + 0.05;
-    const indexUp = isFingerExtended(lm, 8, 6, 5);
-    const middleUp = isFingerExtended(lm, 12, 10, 9);
-    const ringUp = isFingerExtended(lm, 16, 14, 13);
-    const pinkyUp = isFingerExtended(lm, 20, 18, 17);
-    return thumbExtended && indexUp && !middleUp && !ringUp && !pinkyUp;
+  // Fingers up detection (simplified from provided code)
+  const fingersUp = (lm: HandLandmark[], label: string): [number, number, number, number, number] => {
+    const tips = [4, 8, 12, 16, 20];
+    const state: number[] = [];
+    
+    // Thumb: compare x coords vs previous joint (hand-aware)
+    const thumbTip = lm[tips[0]];
+    const thumbPrev = lm[tips[0] - 1];
+    if (label === "Right") {
+      state.push(thumbTip.x < thumbPrev.x ? 1 : 0);
+    } else {
+      state.push(thumbTip.x > thumbPrev.x ? 1 : 0);
+    }
+    
+    // Other fingers: tip y < pip y => finger up
+    for (let i = 1; i < tips.length; i++) {
+      const fid = tips[i];
+      state.push(lm[fid].y < lm[fid - 2].y ? 1 : 0);
+    }
+    
+    return [state[0], state[1], state[2], state[3], state[4]]; // [thumb, index, middle, ring, pinky]
   };
 
-  const isOKSignGesture = (lm: HandLandmark[]): boolean => {
-    const thumbTip = lm[4];
-    const indexTip = lm[8];
-    const distance = Math.sqrt(
-      Math.pow((thumbTip.x - indexTip.x) * 640, 2) + 
-      Math.pow((thumbTip.y - indexTip.y) * 480, 2)
-    );
-    const middleUp = isFingerExtended(lm, 12, 10, 9);
-    const ringUp = isFingerExtended(lm, 16, 14, 13);
-    const pinkyUp = isFingerExtended(lm, 20, 18, 17);
-    return distance < 30 && middleUp && ringUp && pinkyUp;
+  // Enhanced gesture detection (from provided code logic)
+  const detectGesture = (lm: HandLandmark[], label: string): { name: string; confidence: number } | null => {
+    const w = CONFIG.CAM_WIDTH;
+    const h = CONFIG.CAM_HEIGHT;
+    const fu = fingersUp(lm, label);
+    const [thumb, index, middle, ring, pinky] = fu;
+
+    // Basic openness checks
+    const allOpen = fu.every(f => f === 1);
+    const onlyIndex = index === 1 && thumb === 0 && middle === 0 && ring === 0 && pinky === 0;
+    const onlyThumb = thumb === 1 && index === 0 && middle === 0 && ring === 0 && pinky === 0;
+
+    // Landmark shortcuts
+    const wrist = lm[0];
+    const tipThumb = lm[4];
+    const tipIndex = lm[8];
+    const tipMiddle = lm[12];
+
+    // Pixel-based distances
+    const dThumbIndex = distPx(tipThumb, tipIndex, w, h);
+    const dIndexMiddle = distPx(tipIndex, tipMiddle, w, h);
+
+    // Angle for L-shape (between wrist->thumb_tip and wrist->index_tip)
+    const angL = anglePx(tipThumb, wrist, tipIndex, w, h);
+
+    // Priority order (from provided code)
+    
+    // 1) Open Palm
+    if (allOpen) {
+      return { name: "Open Palm", confidence: 0.98 };
+    }
+
+    // 2) Point (Index only)
+    if (onlyIndex) {
+      return { name: "Point", confidence: 0.92 };
+    }
+
+    // 3) L-Shape (Thumb + Index up, others down, approx right angle)
+    if (thumb === 1 && index === 1 && middle === 0 && ring === 0 && pinky === 0) {
+      if (angL >= 50 && angL <= 120) {
+        return { name: "L-Shape", confidence: 0.88 };
+      }
+    }
+
+    // 4) OK Sign (thumb-index tips touching/close AND at least middle up)
+    if (dThumbIndex < CONFIG.OK_PINCH_THRESH && middle === 1) {
+      return { name: "OK Sign", confidence: 0.87 };
+    }
+
+    // 5) Pinky (only pinky finger up, others down)
+    const onlyPinky = pinky === 1 && thumb === 0 && index === 0 && middle === 0 && ring === 0;
+    if (onlyPinky) {
+      return { name: "Pinky", confidence: 0.83 };
+    }
+
+    // 6) Two Fingers (index + middle up only, separated)
+    if (index === 1 && middle === 1 && thumb === 0 && ring === 0 && pinky === 0) {
+      // Keep them apart
+      if (dIndexMiddle > CONFIG.FINGER_JOIN_THRESH) {
+        return { name: "Two Fingers", confidence: 0.78 };
+      }
+    }
+
+    // 7) Three Fingers (index + middle + ring up only)
+    if (index === 1 && middle === 1 && ring === 1 && thumb === 0 && pinky === 0) {
+      return { name: "Three Fingers", confidence: 0.73 };
+    }
+
+    // 8) Thumb Out (thumb only)
+    if (onlyThumb) {
+      return { name: "Thumb Out", confidence: 0.75 };
+    }
+
+    return null;
   };
 
-  const isPinchGesture = (lm: HandLandmark[]): boolean => {
-    const thumbTip = lm[4];
-    const indexTip = lm[8];
-    const distance = Math.sqrt(
-      Math.pow((thumbTip.x - indexTip.x) * 640, 2) + 
-      Math.pow((thumbTip.y - indexTip.y) * 480, 2)
-    );
-    return distance < 25;
+  const inActiveZone = (lm: HandLandmark[]) => {
+    const center = { x: (lm[0].x + lm[9].x) / 2, y: (lm[0].y + lm[9].y) / 2 };
+    return center.x > CONFIG.ZONE_X_MIN && center.x < CONFIG.ZONE_X_MAX && center.y > CONFIG.ZONE_Y_MIN && center.y < CONFIG.ZONE_Y_MAX;
+  };
+
+  const isStable = (lm: HandLandmark[]) => {
+    const center = { x: lm[9].x, y: lm[9].y };
+    const prev = gestureStateRef.current.previousHandPosition;
+    gestureStateRef.current.previousHandPosition = center;
+    if (!prev) return true; // allow first
+    const move = Math.hypot(center.x - prev.x, center.y - prev.y);
+    return move < CONFIG.STABILITY_THRESHOLD;
+  };
+
+  const inCooldown = (name: string) => {
+    const now = Date.now();
+    const last = gestureStateRef.current.lastGestureTimes.get(name);
+    if (!last || now - last > CONFIG.COOLDOWN_MS) {
+      gestureStateRef.current.lastGestureTimes.set(name, now);
+      return false;
+    }
+    return true;
+  };
+
+  const checkDwell = (name: string) => {
+    const now = Date.now();
+    const start = gestureStateRef.current.gestureStartTimes.get(name);
+    if (!start) {
+      gestureStateRef.current.gestureStartTimes.set(name, now);
+      return false;
+    }
+    if (now - start >= CONFIG.DWELL_TIME_MS) {
+      gestureStateRef.current.gestureStartTimes.delete(name);
+      return true;
+    }
+    return false;
+  };
+
+  const stableFramesReached = (name: string) => {
+    const count = (gestureStateRef.current.stabilityFrameCount.get(name) || 0) + 1;
+    gestureStateRef.current.stabilityFrameCount.set(name, count);
+    for (const k of gestureStateRef.current.stabilityFrameCount.keys()) {
+      if (k !== name) gestureStateRef.current.stabilityFrameCount.set(k, 0);
+    }
+    return count >= CONFIG.STABILITY_FRAMES;
   };
 
   const processResults = (results: Results) => {
-    const state = gestureStateRef.current;
-
-    // Calculate FPS
-    const now = performance.now();
-    const elapsed = now - state.performanceMetrics.frameStartTime;
-    if (elapsed > 0) {
-      state.performanceMetrics.fps = 1000 / elapsed;
-    }
+    const s = gestureStateRef.current;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
     if (!results.multiHandLandmarks || results.multiHandLandmarks.length === 0) {
-      state.grabMode = false;
-      state.scrollMode = false;
-      state.zoomPrevDist = null;
-      state.predictedHand = null;
-      state.currentHand = null;
+      s.latestLandmarks = null;
       onModeChange("Ready");
       onGestureDetected("None");
-      
-      // Update performance metrics
-      updatePerformanceMetrics();
+      renderCanvas();
       return;
     }
 
-    const handCount = results.multiHandLandmarks.length;
+    const hand = results.multiHandLandmarks[0] as HandLandmark[];
+    const label = (results.multiHandedness?.[0] as any)?.label || "Right";
+    s.latestLandmarks = hand;
 
-    // Store current hand for rendering
-    if (handCount >= 1) {
-      const hand = results.multiHandLandmarks[0];
-      const label = (results.multiHandedness?.[0] as any)?.label || "Right";
-      state.currentHand = {
-        landmarks: hand as HandLandmark[],
-        label: label,
-      };
+    if (!inActiveZone(hand)) {
+      onModeChange("Ready");
+      onGestureDetected("None");
+      renderCanvas();
+      return;
+    }
+    if (!isStable(hand)) {
+      onModeChange("Ready");
+      renderCanvas();
+      return;
     }
 
-    // NEW SINGLE-HAND GESTURES
-    if (handCount === 1) {
-      const hand = results.multiHandLandmarks[0];
-      const label = (results.multiHandedness?.[0] as any)?.label || "Right";
-      const lm = hand as HandLandmark[];
+    // Use enhanced gesture detection (from provided code)
+    const detected = detectGesture(hand, label);
 
-      // Open Palm → Start/Stop Recording
-      if (isOpenPalm(lm, label)) {
-        confirmGesture("Open Palm", 0.95, () => {
-          onGestureDetected("Open Palm");
-          onModeChange("✋ OPEN PALM");
-        });
-      }
-      // Point → Mute/Unmute Microphone
-      else if (isPointGesture(lm)) {
-        confirmGesture("Point", 0.92, () => {
-          onGestureDetected("Point");
-          onModeChange("👉 POINT");
-        });
-      }
-      // L-Shape → Switch to Next Scene
-      else if (isLShapeGesture(lm, label)) {
-        confirmGesture("L-Shape", 0.90, () => {
-          onGestureDetected("L-Shape");
-          onModeChange("🔲 L-SHAPE");
-        });
-      }
-      // OK Sign → Start/Stop Streaming
-      else if (isOKSignGesture(lm)) {
-        confirmGesture("OK Sign", 0.88, () => {
-          onGestureDetected("OK Sign");
-          onModeChange("👌 OK SIGN");
-        });
-      }
-      // Pinch → Pause Gesture Detection
-      else if (isPinchGesture(lm)) {
-        confirmGesture("Pinch", 0.87, () => {
-          onGestureDetected("Pinch");
-          onModeChange("🤏 PINCH");
-        });
-      }
+    if (!detected || detected.confidence < CONFIG.CONFIDENCE_THRESHOLD) {
+      onGestureDetected("None");
+      onModeChange("Ready");
+      renderCanvas();
+      return;
     }
 
-    updatePerformanceMetrics();
-  };
+    const best = detected;
 
-  const updatePerformanceMetrics = () => {
-    if (!onPerformanceUpdate) return;
+    if (!stableFramesReached(best.name)) { renderCanvas(); return; }
+    if (inCooldown(best.name)) { renderCanvas(); return; }
+    if (!checkDwell(best.name)) { renderCanvas(); return; }
 
-    const state = gestureStateRef.current;
-    const avgLatency = state.performanceMetrics.latencies.length > 0
-      ? state.performanceMetrics.latencies.reduce((a, b) => a + b, 0) / state.performanceMetrics.latencies.length
-      : 0;
-
-    const avgPredictionAccuracy = state.performanceMetrics.predictionErrors.length > 0
-      ? 100 - (state.performanceMetrics.predictionErrors.reduce((a, b) => a + b, 0) / state.performanceMetrics.predictionErrors.length)
-      : 90;
-
-    onPerformanceUpdate({
-      latency: avgLatency,
-      fps: state.performanceMetrics.fps,
-      confidence: state.gestureConfirmation.confidence * 100,
-      predictionAccuracy: avgPredictionAccuracy,
-    });
+    onGestureDetected(best.name);
+    onModeChange(uiModeFor(best.name));
+    renderCanvas();
   };
 
   const renderCanvas = () => {
@@ -350,37 +384,35 @@ const GestureCanvasAdvanced = ({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const state = gestureStateRef.current;
-
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw current hand landmarks (actual detected hand)
-    if (state.currentHand) {
-      drawHandLandmarks(ctx, state.currentHand.landmarks);
-    }
-
-    // Draw predicted hand (ghost)
-    if (state.predictedHand) {
-      drawGhostHand(ctx, state.predictedHand);
-    }
-
-    // Draw confidence glow around index finger tip
-    const confidence = state.gestureConfirmation.confidence;
-    if (confidence > 0 && state.currentHand) {
-      const indexTip = state.currentHand.landmarks[8];
-      const x = indexTip.x * 640;
-      const y = indexTip.y * 480;
-      
-      const color = confidence > 0.9 ? "59, 255, 59" : confidence > 0.7 ? "255, 255, 59" : "255, 59, 59";
-      ctx.shadowBlur = 25 * confidence;
-      ctx.shadowColor = `rgba(${color}, 0.9)`;
-      ctx.strokeStyle = `rgba(${color}, ${confidence * 0.8})`;
-      ctx.lineWidth = 4;
+    // Draw latest landmarks if available (from in-component results)
+    const lms = gestureStateRef.current.latestLandmarks;
+    if (lms && lms.length > 0) {
+      // connections
+      const connections = [
+        [0, 1], [1, 2], [2, 3], [3, 4],
+        [0, 5], [5, 6], [6, 7], [7, 8],
+        [0, 9], [9, 10], [10, 11], [11, 12],
+        [0, 13], [13, 14], [14, 15], [15, 16],
+        [0, 17], [17, 18], [18, 19], [19, 20],
+        [5, 9], [9, 13], [13, 17]
+      ] as [number, number][];
+      ctx.strokeStyle = "rgba(0, 255, 255, 0.6)";
+      ctx.lineWidth = 2;
+      connections.forEach(([a, b]) => {
       ctx.beginPath();
-      ctx.arc(x, y, 35, 0, 2 * Math.PI);
+        ctx.moveTo(lms[a].x * 640, lms[a].y * 480);
+        ctx.lineTo(lms[b].x * 640, lms[b].y * 480);
       ctx.stroke();
-      ctx.shadowBlur = 0;
+      });
+      lms.forEach((p, i) => {
+        ctx.fillStyle = i === 8 ? "rgba(255, 0, 255, 1)" : "rgba(0, 255, 255, 1)";
+        ctx.beginPath();
+        ctx.arc(p.x * 640, p.y * 480, i === 8 ? 6 : 4, 0, 2 * Math.PI);
+        ctx.fill();
+      });
     }
   };
 

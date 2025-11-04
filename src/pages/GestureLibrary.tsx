@@ -54,9 +54,9 @@ const gestures = {
       priority: "High"
     },
     {
-      name: "Pinch",
+      name: "Pinky",
       icon: <Minimize2 className="w-8 h-8" />,
-      description: "Thumb + Index pinched together",
+      description: "Pinky finger extended, others down",
       action: "Pause Gesture Detection",
       difficulty: "Medium",
       color: "text-warning",

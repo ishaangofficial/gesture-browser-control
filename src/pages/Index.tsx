@@ -290,8 +290,8 @@ const Index = () => {
                 <Minimize2 className="w-16 h-16 text-primary" />
               </div>
               <Badge className="mb-4 bg-info/20 text-info">Medium Priority</Badge>
-              <h3 className="text-2xl font-bold mb-3">Pinch</h3>
-              <p className="text-muted-foreground mb-4">Thumb + Index pinched</p>
+              <h3 className="text-2xl font-bold mb-3">Pinky</h3>
+              <p className="text-muted-foreground mb-4">Pinky finger extended</p>
               <div className="clay-inset p-3 rounded-lg">
                 <p className="text-sm font-medium text-primary">Pause Detection</p>
               </div>

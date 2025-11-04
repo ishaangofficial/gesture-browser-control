@@ -64,9 +64,9 @@ const OBSInstructionOverlay = ({ currentGesture, onClose }: OBSInstructionOverla
     },
     {
       id: 5,
-      gesture: "Pinch",
+      gesture: "Pinky",
       icon: <Minimize2 className="w-6 h-6" />,
-      description: "Pinch thumb and index together",
+      description: "Extend only your pinky finger",
       action: "Pause Gesture Detection",
       completed: false,
     },

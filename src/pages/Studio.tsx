@@ -5,8 +5,9 @@ import { Badge } from "@/components/ui/badge";
 import OBSSimulatorRealistic from "@/components/OBSSimulatorRealistic";
 import GestureCanvasAdvanced from "@/components/GestureCanvasAdvanced";
 import { PerformanceDashboard } from "@/components/PerformanceDashboard";
+import OBSOnboarding from "@/components/OBSOnboarding";
 import Navbar from "@/components/Navbar";
-import { Camera, Hand, Play, Square, Activity, Info } from "lucide-react";
+import { Camera, Hand, Play, Square, Activity, Info, HelpCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const Studio = () => {
@@ -26,6 +27,8 @@ const Studio = () => {
     gesture: "None",
     status: "ready" as "ready" | "processing" | "error",
   });
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [hasSeenOnboarding, setHasSeenOnboarding] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -45,6 +48,14 @@ const Studio = () => {
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         setIsActive(true);
+        
+        // Show onboarding if user hasn't seen it before
+        const hasSeen = localStorage.getItem("obs-onboarding-seen");
+        if (!hasSeen) {
+          setShowOnboarding(true);
+          setHasSeenOnboarding(false);
+        }
+        
         toast({
           title: "Gesture control activated! 🚀",
           description: "Your camera is ready. Start making gestures to control OBS!",
@@ -109,9 +120,35 @@ const Studio = () => {
     }));
   };
 
+  const handleOnboardingComplete = () => {
+    setShowOnboarding(false);
+    setHasSeenOnboarding(true);
+    localStorage.setItem("obs-onboarding-seen", "true");
+    toast({
+      title: "Onboarding complete! 🎉",
+      description: "You're all set to control OBS with gestures!",
+    });
+  };
+
+  const handleOnboardingSkip = () => {
+    setShowOnboarding(false);
+    setHasSeenOnboarding(true);
+    localStorage.setItem("obs-onboarding-seen", "true");
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
+      
+      {/* Onboarding Overlay */}
+      {showOnboarding && isActive && (
+        <OBSOnboarding
+          isActive={isActive}
+          currentGesture={currentGesture}
+          onComplete={handleOnboardingComplete}
+          onSkip={handleOnboardingSkip}
+        />
+      )}
 
       <div className="max-w-[1920px] mx-auto section-spacing">
         {/* Header */}
@@ -124,6 +161,20 @@ const Studio = () => {
               </p>
             </div>
             <div className="flex items-center gap-3">
+              {isActive && (
+                <Button
+                  onClick={() => {
+                    localStorage.removeItem("obs-onboarding-seen");
+                    setShowOnboarding(true);
+                  }}
+                  variant="outline"
+                  size="lg"
+                  className="gap-2"
+                >
+                  <HelpCircle className="w-4 h-4" />
+                  Show Tutorial
+                </Button>
+              )}
               {!isActive ? (
                 <Button onClick={startCamera} size="lg" className="gap-2">
                   <Play className="w-4 h-4" />
@@ -165,7 +216,7 @@ const Studio = () => {
                     <li>• 👉 <strong>Point:</strong> Mute/Unmute Microphone</li>
                     <li>• 🔲 <strong>L-Shape:</strong> Switch to Next Scene</li>
                     <li>• 👌 <strong>OK Sign:</strong> Start/Stop Streaming</li>
-                    <li>• 🤏 <strong>Pinch:</strong> Pause Gesture Detection</li>
+                    <li>• 🤙 <strong>Pinky:</strong> Pause Gesture Detection</li>
                   </ul>
                 </div>
               </div>
@@ -262,7 +313,7 @@ const Studio = () => {
                   <span>Stream</span>
                 </div>
                 <div className="clay-inset p-3 flex items-center justify-between rounded-lg">
-                  <span className="text-muted-foreground">🤏 Pinch</span>
+                  <span className="text-muted-foreground">🤙 Pinky</span>
                   <span>Pause</span>
                 </div>
               </div>
