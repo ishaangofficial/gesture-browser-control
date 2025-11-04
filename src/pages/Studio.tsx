@@ -216,7 +216,6 @@ const Studio = () => {
                     <li>• 👉 <strong>Point:</strong> Mute/Unmute Microphone</li>
                     <li>• 🔲 <strong>L-Shape:</strong> Switch to Next Scene</li>
                     <li>• 👌 <strong>OK Sign:</strong> Start/Stop Streaming</li>
-                    <li>• 🤙 <strong>Pinky:</strong> Pause Gesture Detection</li>
                   </ul>
                 </div>
               </div>
@@ -265,30 +264,6 @@ const Studio = () => {
               </div>
             </Card>
 
-            {/* Stats */}
-            <Card className="clay p-4">
-              <h3 className="font-semibold mb-3 flex items-center gap-2">
-                <Activity className="w-4 h-4 text-primary" />
-                Live Stats
-              </h3>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Mode</span>
-                  <Badge variant="outline" className="clay">{gestureMode}</Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Gesture</span>
-                  <span className="text-sm font-medium">{currentGesture}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Cursor</span>
-                  <span className="text-xs font-mono">
-                    X: {Math.round(cursorX)} Y: {Math.round(cursorY)}
-                  </span>
-                </div>
-              </div>
-            </Card>
-
             {/* Performance Dashboard */}
             {isActive && <PerformanceDashboard metrics={performanceMetrics} />}
 
@@ -311,10 +286,6 @@ const Studio = () => {
                 <div className="clay-inset p-3 flex items-center justify-between rounded-lg">
                   <span className="text-muted-foreground">👌 OK Sign</span>
                   <span>Stream</span>
-                </div>
-                <div className="clay-inset p-3 flex items-center justify-between rounded-lg">
-                  <span className="text-muted-foreground">🤙 Pinky</span>
-                  <span>Pause</span>
                 </div>
               </div>
             </Card>

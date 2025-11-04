@@ -147,7 +147,6 @@ const GestureCanvasAdvanced = ({
       case "Point": return "👉 POINT";
       case "L-Shape": return "🔲 L-SHAPE";
       case "OK Sign": return "👌 OK SIGN";
-      case "Pinky": return "🤙 PINKY";
       case "Two Fingers": return "✌️ TWO FINGERS";
       case "Three Fingers": return "🖖 THREE FINGERS";
       case "Thumb Out": return "👍 THUMB OUT";
@@ -253,13 +252,7 @@ const GestureCanvasAdvanced = ({
       return { name: "OK Sign", confidence: 0.87 };
     }
 
-    // 5) Pinky (only pinky finger up, others down)
-    const onlyPinky = pinky === 1 && thumb === 0 && index === 0 && middle === 0 && ring === 0;
-    if (onlyPinky) {
-      return { name: "Pinky", confidence: 0.83 };
-    }
-
-    // 6) Two Fingers (index + middle up only, separated)
+    // 5) Two Fingers (index + middle up only, separated)
     if (index === 1 && middle === 1 && thumb === 0 && ring === 0 && pinky === 0) {
       // Keep them apart
       if (dIndexMiddle > CONFIG.FINGER_JOIN_THRESH) {
@@ -267,12 +260,12 @@ const GestureCanvasAdvanced = ({
       }
     }
 
-    // 7) Three Fingers (index + middle + ring up only)
+    // 6) Three Fingers (index + middle + ring up only)
     if (index === 1 && middle === 1 && ring === 1 && thumb === 0 && pinky === 0) {
       return { name: "Three Fingers", confidence: 0.73 };
     }
 
-    // 8) Thumb Out (thumb only)
+    // 7) Thumb Out (thumb only)
     if (onlyThumb) {
       return { name: "Thumb Out", confidence: 0.75 };
     }

@@ -51,15 +51,6 @@ const gestureSteps: GestureStep[] = [
     action: "Start/Stop Streaming",
     position: "bottom-right"
   },
-  {
-    id: 5,
-    gesture: "Pinky",
-    icon: "🤙",
-    title: "Pinky",
-    description: "Extend only your pinky finger",
-    action: "Pause Gesture Detection",
-    position: "center"
-  }
 ];
 
 interface OBSOnboardingProps {

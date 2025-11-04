@@ -62,14 +62,6 @@ const OBSInstructionOverlay = ({ currentGesture, onClose }: OBSInstructionOverla
       action: "Start/Stop Streaming",
       completed: false,
     },
-    {
-      id: 5,
-      gesture: "Pinky",
-      icon: <Minimize2 className="w-6 h-6" />,
-      description: "Extend only your pinky finger",
-      action: "Pause Gesture Detection",
-      completed: false,
-    },
   ]);
 
   const [currentStepIndex, setCurrentStepIndex] = useState(0);

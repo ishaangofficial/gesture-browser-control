@@ -62,16 +62,6 @@ const Training = () => {
       requiredCount: 3,
       type: "count"
     },
-    {
-      title: "Pinky",
-      gesture: "Pinky",
-      instruction: "Extend only your pinky finger, keeping all other fingers down.",
-      details: "Pinky finger up - Pause Gesture Detection",
-      icon: "🤙",
-      requiredDuration: 0,
-      requiredCount: 3,
-      type: "count"
-    }
   ];
 
   const currentTraining = trainingSteps[currentStep];

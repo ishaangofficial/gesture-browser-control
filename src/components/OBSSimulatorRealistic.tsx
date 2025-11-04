@@ -1,10 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Video, Volume2, VolumeX, Eye, EyeOff, Lock, Settings as SettingsIcon, Plus, Minus, ChevronUp, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
-import scene1 from "@/assets/obs-scene-1.jpg";
-import scene2 from "@/assets/obs-scene-2.jpg";
-import scene3 from "@/assets/obs-scene-3.jpg";
-import scene4 from "@/assets/obs-scene-4.jpg";
 
 interface OBSSimulatorProps {
   cursorX: number;
@@ -27,11 +23,29 @@ const OBSSimulatorRealistic = ({ cursorX, cursorY, isClicking, gesture }: OBSSim
   ]);
   
   const scenes = [
-    { name: "Gaming Scene", active: true, image: scene1 },
-    { name: "Coding Scene", active: false, image: scene2 },
-    { name: "Chat Scene", active: false, image: scene3 },
-    { name: "Music Scene", active: false, image: scene4 }
+    { 
+      name: "Gaming Scene", 
+      active: true, 
+      video: "https://videos.pexels.com/video-files/3045163/3045163-hd_1920_1080_30fps.mp4" 
+    },
+    { 
+      name: "Coding Scene", 
+      active: false, 
+      video: "https://videos.pexels.com/video-files/2491284/2491284-hd_1920_1080_25fps.mp4" 
+    },
+    { 
+      name: "Chat Scene", 
+      active: false, 
+      video: "https://videos.pexels.com/video-files/3195394/3195394-hd_1920_1080_25fps.mp4" 
+    },
+    { 
+      name: "Music Scene", 
+      active: false, 
+      video: "https://videos.pexels.com/video-files/3045163/3045163-hd_1920_1080_30fps.mp4" 
+    }
   ];
+  
+  const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
 
   const prevGestureRef = useRef<string>("");
   const containerRef = useRef<HTMLDivElement>(null);
@@ -56,6 +70,12 @@ const OBSSimulatorRealistic = ({ cursorX, cursorY, isClicking, gesture }: OBSSim
     if (gesture === "L-Shape") {
       const nextScene = (activeScene + 1) % scenes.length;
       setActiveScene(nextScene);
+      // Ensure video plays when scene changes
+      const video = videoRefs.current[nextScene];
+      if (video) {
+        video.currentTime = 0;
+        video.play().catch(() => {});
+      }
       toast.success(`📺 Switched to ${scenes[nextScene].name}`);
     }
 
@@ -65,9 +85,6 @@ const OBSSimulatorRealistic = ({ cursorX, cursorY, isClicking, gesture }: OBSSim
       toast.success(newState ? "🔴 Stream Started" : "⏹️ Stream Stopped");
     }
 
-    if (gesture === "Pinky") {
-      toast.info("⏸️ Gesture Detection Paused");
-    }
   }, [gesture, activeScene, isRecording, isMicMuted, isStreaming]);
 
   return (
@@ -158,14 +175,22 @@ const OBSSimulatorRealistic = ({ cursorX, cursorY, isClicking, gesture }: OBSSim
         <div className="flex-1 flex flex-col min-w-0">
           {/* Preview Area */}
           <div className="flex-1 bg-black relative overflow-hidden min-h-0">
-            {/* Scene Background Image */}
-            <div 
-              className="absolute inset-0 bg-cover bg-center transition-all duration-500"
-              style={{ 
-                backgroundImage: `url(${scenes[activeScene].image})`,
-                filter: 'brightness(0.7)'
-              }}
-            />
+            {/* Scene Background Videos */}
+            {scenes.map((scene, idx) => (
+              <video
+                key={idx}
+                ref={el => videoRefs.current[idx] = el}
+                src={scene.video}
+                autoPlay
+                loop
+                muted
+                playsInline
+                className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${
+                  idx === activeScene ? 'opacity-100 z-0' : 'opacity-0 z-[-1]'
+                }`}
+                style={{ filter: 'brightness(0.7)' }}
+              />
+            ))}
             
             {/* Overlay Gradient */}
             <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 to-purple-900/20" />

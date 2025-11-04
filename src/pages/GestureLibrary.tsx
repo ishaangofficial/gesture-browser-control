@@ -53,15 +53,6 @@ const gestures = {
       color: "text-warning",
       priority: "High"
     },
-    {
-      name: "Pinky",
-      icon: <Minimize2 className="w-8 h-8" />,
-      description: "Pinky finger extended, others down",
-      action: "Pause Gesture Detection",
-      difficulty: "Medium",
-      color: "text-warning",
-      priority: "Medium"
-    }
   ]
 };
 
