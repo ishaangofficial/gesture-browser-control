@@ -95,9 +95,9 @@ const OBSSimulator = ({ cursorX, cursorY, isClicking, isRightClicking, gesture }
 
             {/* Scene content */}
             <div className="relative z-10 h-full flex flex-col items-center justify-center p-8">
-              <Video className="w-16 h-16 text-white/80 mb-4" />
-              <h3 className="text-2xl font-bold text-white mb-2">{scenes[activeScene].name}</h3>
-              <p className="text-white/60 text-sm">Demo Stream Content</p>
+              <Video className="w-16 h-16 text-primary/80 mb-4" />
+              <h3 className="text-2xl font-bold text-primary mb-2">{scenes[activeScene].name}</h3>
+              <p className="text-primary/60 text-sm">Demo Stream Content</p>
               
               {/* Virtual cursor overlay */}
               <div 
@@ -113,17 +113,17 @@ const OBSSimulator = ({ cursorX, cursorY, isClicking, isRightClicking, gesture }
             {/* Stream info overlay */}
             <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">
               <div className="bg-black/60 backdrop-blur-sm rounded-lg px-3 py-2">
-                <p className="text-white text-sm font-medium">Your Amazing Stream</p>
-                <p className="text-white/60 text-xs">Playing: {scenes[activeScene].name}</p>
+                <p className="text-primary text-sm font-medium">Your Amazing Stream</p>
+                <p className="text-primary/60 text-xs">Playing: {scenes[activeScene].name}</p>
               </div>
               <div className="flex gap-2">
                 {isMuted ? (
                   <div className="bg-red-500/90 backdrop-blur-sm rounded-lg p-2">
-                    <MicOff className="w-4 h-4 text-white" />
+                    <MicOff className="w-4 h-4 text-primary" />
                   </div>
                 ) : (
                   <div className="bg-green-500/90 backdrop-blur-sm rounded-lg p-2">
-                    <Mic className="w-4 h-4 text-white" />
+                    <Mic className="w-4 h-4 text-primary" />
                   </div>
                 )}
               </div>
@@ -148,7 +148,7 @@ const OBSSimulator = ({ cursorX, cursorY, isClicking, isRightClicking, gesture }
             </div>
             <div className="flex items-center gap-2">
               <button className={`p-2 rounded-lg transition-all ${isMuted ? 'bg-red-500' : 'bg-zinc-800 hover:bg-zinc-700'}`}>
-                {isMuted ? <MicOff className="w-4 h-4 text-white" /> : <Mic className="w-4 h-4 text-zinc-300" />}
+                {isMuted ? <MicOff className="w-4 h-4 text-primary" /> : <Mic className="w-4 h-4 text-primary/70" />}
               </button>
               <button className="p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-all">
                 <Volume2 className="w-4 h-4 text-zinc-300" />
@@ -211,7 +211,7 @@ const OBSSimulator = ({ cursorX, cursorY, isClicking, isRightClicking, gesture }
 
       {/* Gesture indicator */}
       {gesture && gesture !== "None" && (
-        <div className="absolute top-12 right-4 bg-cyan-500/90 backdrop-blur-sm text-white px-4 py-2 rounded-lg shadow-lg animate-fade-in">
+        <div className="absolute top-12 right-4 bg-primary/90 backdrop-blur-sm text-white px-4 py-2 rounded-lg shadow-lg animate-fade-in">
           <p className="text-xs font-medium">Gesture: {gesture}</p>
         </div>
       )}

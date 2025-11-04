@@ -3,9 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import OnboardingTour from "@/components/OnboardingTour";
-import Navbar from "@/components/Navbar";
+import TubelightNavbar from "@/components/TubelightNavbar";
 import Footer from "@/components/Footer";
 import WaitlistDialog from "@/components/WaitlistDialog";
+import { GlowingBentoGrid } from "@/components/GlowingBentoGrid";
+import { TypewriterText } from "@/components/TypewriterText";
+import { SplineHand } from "@/components/SplineHand";
+import videoSrc from "@/assets/WhatsApp Video 2025-10-26 at 20.48.05_4b89d6b0.mp4";
 import { 
   Hand, 
   Sparkles,
@@ -54,267 +58,150 @@ const Index = () => {
     navigate("/training");
   };
 
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-white relative">
       {showOnboarding && <OnboardingTour onComplete={handleOnboardingComplete} />}
       
-      <Navbar />
+      <TubelightNavbar />
 
-      <div className="max-w-[1400px] mx-auto px-4 space-y-32">
-        {/* Hero Section - Enhanced */}
-        <section className="py-20 md:py-32 text-center space-y-8">
-          <Badge className="clay text-base px-6 py-2 mb-4 animate-fade-in">
-            <Sparkles className="w-4 h-4 mr-2" />
-            Sub-100ms Latency • 99.3% Accuracy
-          </Badge>
-          
-          <div className="flex justify-center mb-8">
-            <div className="relative">
-              <div className="clay clay-glow p-10 rounded-[2rem] animate-float">
-                <Hand className="w-32 h-32 text-primary" />
-              </div>
-              <div className="absolute -top-4 -right-4 clay p-4 rounded-2xl animate-pulse-glow">
-                <Zap className="w-8 h-8 text-warning" />
-              </div>
+      {/* Hero Section - 100vh with Seamless Text & Spline */}
+      <section id="home" className="h-screen flex items-center justify-center px-4 md:px-6 lg:px-8 relative bg-white overflow-hidden">
+        <div className="max-w-[1600px] w-full mx-auto flex flex-col lg:flex-row items-center justify-between gap-0 lg:gap-0">
+          {/* Left Side - Text */}
+          <div className="flex-1 space-y-6 md:space-y-8 z-10 max-w-2xl">
+            <div className="space-y-4">
+              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-tight tracking-tight text-primary">
+                <span className="block">Stream Like</span>
+                <span className="block">
+                  <TypewriterText 
+                    texts={[
+                      "Magic",
+                      "A Pro",
+                      "The Future",
+                      "Innovation"
+                    ]}
+                    speed={100}
+                    deleteSpeed={50}
+                    delay={2000}
+                  />
+                </span>
+              </h1>
+              <p className="text-lg md:text-xl text-primary/90 leading-relaxed font-normal">
+                The world's most advanced gesture control system for OBS Studio.
+                <br />
+                <span className="font-semibold">No mouse. No keyboard. Just your hands.</span>
+              </p>
+            </div>
+            
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-3 pt-2">
+              <Link to="/studio">
+                <Button size="lg" className="w-full sm:w-auto px-8 py-6 text-base font-semibold">
+                  <Play className="w-5 h-5 mr-2" />
+                  Try OBS Simulator
+                </Button>
+              </Link>
+              <Link to="/training">
+                <Button variant="outline" size="lg" className="w-full sm:w-auto px-8 py-6 text-base font-semibold">
+                  <GraduationCap className="w-5 h-5 mr-2" />
+                  Start Training
+                </Button>
+              </Link>
             </div>
           </div>
-          
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold leading-tight px-4">
-            Stream Like Magic
-            <br />
-            <span className="text-gradient">Control OBS With</span>
-            <br />
-            <span className="text-gradient">Hand Gestures</span>
-          </h1>
-          
-          <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto px-4 leading-relaxed">
-            The most advanced gesture control system for OBS Studio. 
-            <br />
-            <span className="font-semibold text-primary">No mouse. No keyboard. Just your hands.</span>
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8 px-4">
-            <Link to="/studio">
-              <Button size="lg" className="clay clay-hover gap-3 text-lg px-10 py-7 w-full sm:w-auto group">
-                <Play className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                Try OBS Simulator
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </Button>
-            </Link>
-            <Link to="/training">
-              <Button size="lg" variant="outline" className="clay clay-hover gap-3 text-lg px-10 py-7 w-full sm:w-auto">
-                <GraduationCap className="w-5 h-5" />
-                Start Training
-              </Button>
-            </Link>
-          </div>
 
-          {/* Trust Badges */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto pt-12">
-            <div className="clay-inset p-4 rounded-xl">
-              <div className="text-3xl font-bold text-gradient mb-1">1000+</div>
-              <p className="text-sm text-muted-foreground">Active Streamers</p>
-            </div>
-            <div className="clay-inset p-4 rounded-xl">
-              <div className="text-3xl font-bold text-gradient mb-1">99.3%</div>
-              <p className="text-sm text-muted-foreground">Accuracy</p>
-            </div>
-            <div className="clay-inset p-4 rounded-xl">
-              <div className="text-3xl font-bold text-gradient mb-1">&lt;100ms</div>
-              <p className="text-sm text-muted-foreground">Latency</p>
-            </div>
-            <div className="clay-inset p-4 rounded-xl">
-              <div className="text-3xl font-bold text-gradient mb-1">5 Core</div>
-              <p className="text-sm text-muted-foreground">Gestures</p>
+          {/* Right Side - Spline Hand (Fixed Size, No Boundary) */}
+          <div className="flex-1 flex items-center justify-center lg:justify-end w-full lg:w-auto order-1 lg:order-2 relative z-10">
+            <div className="w-full max-w-[600px] h-[400px] md:h-[500px] lg:h-[600px]">
+              <SplineHand 
+                className="w-full h-full" 
+                scene="https://prod.spline.design/qtNMPitWHEYcFE66/scene.splinecode"
+              />
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Bento Grid Features - Premium */}
-        <section className="space-y-8">
-          <div className="text-center mb-12">
+      {/* Demo Video Section - 2nd Section */}
+      <section className="min-h-screen flex flex-col items-center justify-center px-6 md:px-8 lg:px-12 py-32 relative bg-white">
+        <div className="max-w-[1600px] w-full space-y-12 md:space-y-16">
+          <div className="text-center space-y-4">
+            <Badge className="clay text-base px-6 py-2 mb-4">
+              <Video className="w-4 h-4 mr-2" />
+              Demo Video
+            </Badge>
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 leading-tight text-primary">
+              See It In Action
+            </h2>
+            <p className="text-lg md:text-xl text-primary/80 max-w-2xl mx-auto">
+              Watch how gesture control transforms your streaming workflow
+            </p>
+          </div>
+          
+          {/* Video Section */}
+          <div className="w-full max-w-5xl mx-auto">
+            <div className="relative rounded-2xl overflow-hidden shadow-2xl border-2 border-primary/20">
+              <video 
+                src={videoSrc}
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="w-full h-auto"
+              >
+                Your browser does not support the video tag.
+              </video>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section - 100vh */}
+      <section className="min-h-screen flex flex-col items-center justify-center px-6 md:px-8 lg:px-12 py-32 relative bg-gradient-to-b from-white to-background/50">
+        <div className="max-w-[1600px] w-full space-y-12 md:space-y-16">
+          <div className="text-center space-y-4">
             <Badge className="clay text-base px-6 py-2 mb-4">
               <Layers className="w-4 h-4 mr-2" />
               Core Features
             </Badge>
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 leading-tight text-primary">
               Everything You Need to
-              <span className="text-gradient"> Stream Hands-Free</span>
+              <span className="text-primary"> Stream Hands-Free</span>
             </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Large Feature Card */}
-            <Card className="lg:col-span-2 lg:row-span-2 clay clay-hover p-8 relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -mr-32 -mt-32 group-hover:scale-150 transition-transform duration-700" />
-              <div className="relative z-10">
-                <Video className="w-20 h-20 text-primary mb-6" />
-                <h3 className="text-3xl font-bold mb-4">Built for OBS Studio</h3>
-                <p className="text-muted-foreground text-lg mb-6 leading-relaxed">
-                  Seamlessly control every aspect of your OBS setup—scenes, sources, audio, 
-                  recording, and streaming—all without touching your peripherals.
-                </p>
-                <div className="space-y-3">
-                  <div className="clay-inset p-4 rounded-lg flex items-center gap-3">
-                    <CheckCircle2 className="w-5 h-5 text-success flex-shrink-0" />
-                    <span>Switch scenes with gestures</span>
-                  </div>
-                  <div className="clay-inset p-4 rounded-lg flex items-center gap-3">
-                    <CheckCircle2 className="w-5 h-5 text-success flex-shrink-0" />
-                    <span>Control audio and recording</span>
-                  </div>
-                  <div className="clay-inset p-4 rounded-lg flex items-center gap-3">
-                    <CheckCircle2 className="w-5 h-5 text-success flex-shrink-0" />
-                    <span>Start/stop streaming hands-free</span>
-                  </div>
-                </div>
-              </div>
-            </Card>
-
-            {/* Speed Card */}
-            <Card className="clay clay-hover p-6 relative overflow-hidden group">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              <Zap className="w-12 h-12 text-primary mb-4" />
-              <h3 className="text-xl font-bold mb-2">Lightning Fast</h3>
-              <p className="text-muted-foreground">Sub-100ms latency for real-time control</p>
-              <Badge className="mt-4 bg-warning/20 text-warning">Ultra-Low Latency</Badge>
-            </Card>
-
-            {/* Privacy Card */}
-            <Card className="clay clay-hover p-6 relative overflow-hidden group">
-              <div className="absolute inset-0 bg-gradient-to-br from-success/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              <Shield className="w-12 h-12 text-primary mb-4" />
-              <h3 className="text-xl font-bold mb-2">100% Private</h3>
-              <p className="text-muted-foreground">All processing happens locally on your device</p>
-              <Badge className="mt-4 bg-success/20 text-success">Local Processing</Badge>
-            </Card>
-
-            {/* Training Card */}
-            <Card className="clay clay-hover p-6 relative overflow-hidden group">
-              <div className="absolute inset-0 bg-gradient-to-br from-accent/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              <GraduationCap className="w-12 h-12 text-primary mb-4" />
-              <h3 className="text-xl font-bold mb-2">Easy to Learn</h3>
-              <p className="text-muted-foreground">Master all gestures in under 5 minutes</p>
-              <Badge className="mt-4 bg-accent/20 text-accent">Quick Start</Badge>
-            </Card>
-
-            {/* Desktop App Card */}
-            <Card className="lg:col-span-2 clay clay-hover p-8">
-              <div className="flex flex-col sm:flex-row items-center gap-6">
-                <Laptop className="w-24 h-24 text-primary flex-shrink-0" />
-                <div className="flex-1">
-                  <h3 className="text-2xl font-bold mb-3">Desktop App</h3>
-                  <p className="text-muted-foreground mb-4">
-                    Download our desktop app for full OBS Studio integration with advanced features.
-                  </p>
-                  <Button 
-                    className="clay clay-hover gap-2 w-full sm:w-auto"
-                    onClick={() => setShowWaitlist(true)}
-                  >
-                    <Download className="w-4 h-4" />
-                    Get Desktop App
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          </div>
-        </section>
-
-        {/* 5 Core Gestures Section */}
-        <section className="space-y-12">
-          <div className="text-center">
-            <Badge className="clay text-base px-6 py-2 mb-4">
-              <Hand className="w-4 h-4 mr-2" />
-              5 Core Gestures
-            </Badge>
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">
-              Master These Gestures
-              <span className="text-gradient"> to Control Everything</span>
-            </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Each gesture is optimized for accuracy and designed for intuitive control
+            <p className="text-lg md:text-xl text-primary/80 max-w-2xl mx-auto">
+              Powerful features designed for professional streamers
             </p>
           </div>
+          <GlowingBentoGrid />
+        </div>
+      </section>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Card className="clay clay-hover p-8 text-center group">
-              <div className="clay p-6 rounded-2xl mb-6 w-fit mx-auto group-hover:scale-110 transition-transform">
-                <Hand className="w-16 h-16 text-primary" />
-              </div>
-              <Badge className="mb-4 bg-success/20 text-success">Critical</Badge>
-              <h3 className="text-2xl font-bold mb-3">Open Palm</h3>
-              <p className="text-muted-foreground mb-4">All fingers extended</p>
-              <div className="clay-inset p-3 rounded-lg">
-                <p className="text-sm font-medium text-primary">Start/Stop Recording</p>
-              </div>
-            </Card>
-
-            <Card className="clay clay-hover p-8 text-center group">
-              <div className="clay p-6 rounded-2xl mb-6 w-fit mx-auto group-hover:scale-110 transition-transform">
-                <Pointer className="w-16 h-16 text-primary" />
-              </div>
-              <Badge className="mb-4 bg-success/20 text-success">Critical</Badge>
-              <h3 className="text-2xl font-bold mb-3">Point</h3>
-              <p className="text-muted-foreground mb-4">Index finger extended</p>
-              <div className="clay-inset p-3 rounded-lg">
-                <p className="text-sm font-medium text-primary">Mute/Unmute Mic</p>
-              </div>
-            </Card>
-
-            <Card className="clay clay-hover p-8 text-center group">
-              <div className="clay p-6 rounded-2xl mb-6 w-fit mx-auto group-hover:scale-110 transition-transform">
-                <LayoutGrid className="w-16 h-16 text-primary" />
-              </div>
-              <Badge className="mb-4 bg-warning/20 text-warning">High Priority</Badge>
-              <h3 className="text-2xl font-bold mb-3">L-Shape</h3>
-              <p className="text-muted-foreground mb-4">Thumb + Index forming L</p>
-              <div className="clay-inset p-3 rounded-lg">
-                <p className="text-sm font-medium text-primary">Switch Scene</p>
-              </div>
-            </Card>
-
-            <Card className="clay clay-hover p-8 text-center group md:col-span-2 lg:col-span-1">
-              <div className="clay p-6 rounded-2xl mb-6 w-fit mx-auto group-hover:scale-110 transition-transform">
-                <CircleDot className="w-16 h-16 text-primary" />
-              </div>
-              <Badge className="mb-4 bg-warning/20 text-warning">High Priority</Badge>
-              <h3 className="text-2xl font-bold mb-3">OK Sign</h3>
-              <p className="text-muted-foreground mb-4">Circle with thumb + index</p>
-              <div className="clay-inset p-3 rounded-lg">
-                <p className="text-sm font-medium text-primary">Start/Stop Stream</p>
-              </div>
-            </Card>
-
-            <Card className="clay clay-hover p-8 text-center group">
-              <div className="clay p-6 rounded-2xl mb-6 w-fit mx-auto group-hover:scale-110 transition-transform">
-                <Minimize2 className="w-16 h-16 text-primary" />
-              </div>
-              <Badge className="mb-4 bg-info/20 text-info">Medium Priority</Badge>
-            </Card>
-          </div>
-        </section>
-
-        {/* How It Works */}
-        <section className="space-y-12">
-          <div className="text-center">
+      {/* How It Works - 100vh */}
+      <section className="min-h-screen flex flex-col items-center justify-center px-6 md:px-8 lg:px-12 py-32 relative bg-gradient-to-b from-white to-background/50">
+        <div className="max-w-[1600px] w-full space-y-12 md:space-y-16">
+          <div className="text-center space-y-4">
             <Badge className="clay text-base px-6 py-2 mb-4">
               <Target className="w-4 h-4 mr-2" />
               Simple Process
             </Badge>
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 leading-tight text-primary">
               Get Started in
-              <span className="text-gradient"> 3 Easy Steps</span>
+              <span className="text-primary"> 3 Easy Steps</span>
             </h2>
+            <p className="text-lg md:text-xl text-primary/80 max-w-2xl mx-auto">
+              From zero to streaming in minutes
+            </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
             <Card className="clay clay-hover p-8 text-center relative overflow-hidden group">
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-accent" />
               <div className="clay p-6 rounded-full w-20 h-20 mx-auto mb-6 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <span className="text-4xl font-bold text-gradient">1</span>
+                <span className="text-4xl font-bold text-primary">1</span>
               </div>
-              <h3 className="text-2xl font-bold mb-3">Learn Gestures</h3>
-              <p className="text-muted-foreground leading-relaxed">
+              <h3 className="text-2xl font-bold mb-3 text-primary">Learn Gestures</h3>
+              <p className="text-primary/80 leading-relaxed">
                 Complete our interactive training to master 5 core hand gestures in under 5 minutes
               </p>
             </Card>
@@ -322,10 +209,10 @@ const Index = () => {
             <Card className="clay clay-hover p-8 text-center relative overflow-hidden group">
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-accent to-success" />
               <div className="clay p-6 rounded-full w-20 h-20 mx-auto mb-6 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <span className="text-4xl font-bold text-gradient">2</span>
+                <span className="text-4xl font-bold text-primary">2</span>
               </div>
-              <h3 className="text-2xl font-bold mb-3">Practice in Simulator</h3>
-              <p className="text-muted-foreground leading-relaxed">
+              <h3 className="text-2xl font-bold mb-3 text-primary">Practice in Simulator</h3>
+              <p className="text-primary/80 leading-relaxed">
                 Test gestures with our realistic OBS simulator before going live on your stream
               </p>
             </Card>
@@ -333,93 +220,100 @@ const Index = () => {
             <Card className="clay clay-hover p-8 text-center relative overflow-hidden group">
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-success to-primary" />
               <div className="clay p-6 rounded-full w-20 h-20 mx-auto mb-6 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <span className="text-4xl font-bold text-gradient">3</span>
+                <span className="text-4xl font-bold text-primary">3</span>
               </div>
-              <h3 className="text-2xl font-bold mb-3">Stream Hands-Free</h3>
-              <p className="text-muted-foreground leading-relaxed">
+              <h3 className="text-2xl font-bold mb-3 text-primary">Stream Hands-Free</h3>
+              <p className="text-primary/80 leading-relaxed">
                 Control your entire OBS setup with natural hand movements during your live streams
               </p>
             </Card>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Performance Metrics */}
-        <section className="space-y-12">
-          <div className="text-center">
+      {/* Performance Metrics - 100vh */}
+      <section className="min-h-screen flex flex-col items-center justify-center px-6 md:px-8 lg:px-12 py-32 relative bg-gradient-to-b from-background/50 to-white">
+        <div className="max-w-[1600px] w-full space-y-12 md:space-y-16">
+          <div className="text-center space-y-4">
             <Badge className="clay text-base px-6 py-2 mb-4">
               <Gauge className="w-4 h-4 mr-2" />
               Performance
             </Badge>
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 leading-tight text-primary">
               Built for
-              <span className="text-gradient"> Speed & Accuracy</span>
+              <span className="text-primary"> Speed & Accuracy</span>
             </h2>
+            <p className="text-lg md:text-xl text-primary/80 max-w-2xl mx-auto">
+              Industry-leading performance metrics
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
             <Card className="clay clay-hover p-10 text-center">
               <TrendingUp className="w-16 h-16 text-primary mx-auto mb-6" />
-              <div className="text-6xl font-bold text-gradient mb-3">99.3%</div>
-              <h3 className="text-xl font-semibold mb-2">Gesture Accuracy</h3>
-              <p className="text-muted-foreground">Industry-leading precision with MediaPipe AI</p>
+              <div className="text-6xl font-bold text-primary mb-3">99.3%</div>
+              <h3 className="text-xl font-semibold mb-2 text-primary">Gesture Accuracy</h3>
+              <p className="text-primary/80">Industry-leading precision with MediaPipe AI</p>
             </Card>
             
             <Card className="clay clay-hover p-10 text-center">
-              <Zap className="w-16 h-16 text-warning mx-auto mb-6" />
-              <div className="text-6xl font-bold text-gradient mb-3">&lt;100ms</div>
-              <h3 className="text-xl font-semibold mb-2">Response Time</h3>
-              <p className="text-muted-foreground">Instant reaction to your hand gestures</p>
+              <Zap className="w-16 h-16 text-primary mx-auto mb-6" />
+              <div className="text-6xl font-bold text-primary mb-3">&lt;100ms</div>
+              <h3 className="text-xl font-semibold mb-2 text-primary">Response Time</h3>
+              <p className="text-primary/80">Instant reaction to your hand gestures</p>
             </Card>
             
             <Card className="clay clay-hover p-10 text-center">
-              <Wifi className="w-16 h-16 text-success mx-auto mb-6" />
-              <div className="text-6xl font-bold text-gradient mb-3">0ms</div>
-              <h3 className="text-xl font-semibold mb-2">Network Lag</h3>
-              <p className="text-muted-foreground">100% local processing, no cloud delays</p>
+              <Wifi className="w-16 h-16 text-primary mx-auto mb-6" />
+              <div className="text-6xl font-bold text-primary mb-3">0ms</div>
+              <h3 className="text-xl font-semibold mb-2 text-primary">Network Lag</h3>
+              <p className="text-primary/80">100% local processing, no cloud delays</p>
             </Card>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Why Choose Section */}
-        <section className="space-y-12">
-          <div className="text-center">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">
+      {/* Why Choose Section - 100vh */}
+      <section className="min-h-screen flex flex-col items-center justify-center px-6 md:px-8 lg:px-12 py-32 relative bg-gradient-to-b from-white to-background/50">
+        <div className="max-w-[1600px] w-full space-y-12 md:space-y-16">
+          <div className="text-center space-y-4">
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 leading-tight text-primary">
               Why Choose
-              <span className="text-gradient"> SparshMukhti?</span>
+              <span className="text-primary"> SparshMukhti?</span>
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-lg md:text-xl text-primary/80 max-w-2xl mx-auto">
               Built by streamers, for streamers
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
             <Card className="clay clay-hover p-10">
               <Award className="w-14 h-14 text-primary mb-6" />
-              <h3 className="text-2xl font-bold mb-4">Industry Leading</h3>
-              <p className="text-muted-foreground mb-6 leading-relaxed">
+              <h3 className="text-2xl font-bold mb-4 text-primary">Industry Leading</h3>
+              <p className="text-primary/80 mb-6 leading-relaxed">
                 99.3% gesture accuracy with &lt;100ms response time—the fastest gesture 
                 control system in the market
               </p>
               <div className="clay-inset p-4 rounded-lg">
-                <span className="text-sm text-muted-foreground">Used by 1000+ streamers worldwide</span>
+                <span className="text-sm text-primary/80">Used by 1000+ streamers worldwide</span>
               </div>
             </Card>
             
             <Card className="clay clay-hover p-10">
               <Headphones className="w-14 h-14 text-primary mb-6" />
-              <h3 className="text-2xl font-bold mb-4">Premium Support</h3>
-              <p className="text-muted-foreground mb-6 leading-relaxed">
+              <h3 className="text-2xl font-bold mb-4 text-primary">Premium Support</h3>
+              <p className="text-primary/80 mb-6 leading-relaxed">
                 Get help from our team of experts via Discord, email, or live chat whenever you need
               </p>
               <div className="clay-inset p-4 rounded-lg">
-                <span className="text-sm text-muted-foreground">Average response time: &lt;2 hours</span>
+                <span className="text-sm text-primary/80">Average response time: &lt;2 hours</span>
               </div>
             </Card>
             
             <Card className="clay clay-hover p-10">
               <Code className="w-14 h-14 text-primary mb-6" />
-              <h3 className="text-2xl font-bold mb-4">Open Source Core</h3>
-              <p className="text-muted-foreground mb-6 leading-relaxed">
+              <h3 className="text-2xl font-bold mb-4 text-primary">Open Source Core</h3>
+              <p className="text-primary/80 mb-6 leading-relaxed">
                 Our gesture recognition engine is open source and community-driven
               </p>
               <Button variant="outline" className="clay gap-2">
@@ -430,8 +324,8 @@ const Index = () => {
             
             <Card className="clay clay-hover p-10">
               <Users className="w-14 h-14 text-primary mb-6" />
-              <h3 className="text-2xl font-bold mb-4">Active Community</h3>
-              <p className="text-muted-foreground mb-6 leading-relaxed">
+              <h3 className="text-2xl font-bold mb-4 text-primary">Active Community</h3>
+              <p className="text-primary/80 mb-6 leading-relaxed">
                 Join our Discord with 5000+ members sharing tips, presets, and custom gestures
               </p>
               <Button variant="outline" className="clay gap-2">
@@ -439,41 +333,43 @@ const Index = () => {
               </Button>
             </Card>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* CTA Section */}
-        <section className="pb-20">
-          <Card className="clay clay-glow p-12 md:p-16 text-center relative overflow-hidden">
+      {/* CTA Section - 100vh */}
+      <section className="min-h-screen flex flex-col items-center justify-center px-6 md:px-8 lg:px-12 py-32 relative bg-gradient-to-b from-background/50 to-white">
+        <div className="max-w-[1600px] w-full">
+          <Card className="clay clay-glow p-12 md:p-16 lg:p-20 text-center relative overflow-hidden border-2 border-primary/20">
             <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-accent/10" />
-            <div className="relative z-10">
-              <Badge className="text-base px-6 py-2 mb-6">
+            <div className="relative z-10 space-y-6 md:space-y-8">
+              <Badge className="text-base px-6 py-2 mb-4">
                 <Star className="w-4 h-4 mr-2" />
                 Ready to Get Started?
               </Badge>
-              <h2 className="text-4xl md:text-5xl font-bold text-gradient mb-6">
+              <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-primary mb-6 leading-tight">
                 Transform Your Streaming Experience Today
               </h2>
-              <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8 leading-relaxed">
+              <p className="text-lg md:text-xl text-primary/80 max-w-3xl mx-auto mb-8 leading-relaxed">
                 Join hundreds of streamers using gesture control. Try it now—no installation required.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link to="/studio">
-                  <Button size="lg" className="clay clay-hover gap-3 text-lg px-10 py-7 w-full sm:w-auto">
+                  <Button size="lg" className="clay clay-hover gap-3 text-lg px-10 py-7 w-full sm:w-auto shadow-xl hover:shadow-2xl transition-all">
                     <Play className="w-5 h-5" />
                     Try OBS Simulator
                   </Button>
                 </Link>
-                <Link to="/pricing">
-                  <Button size="lg" variant="outline" className="clay gap-3 text-lg px-10 py-7 w-full sm:w-auto">
-                    View Pricing
-                    <ArrowRight className="w-5 h-5" />
+                <Link to="/training">
+                  <Button variant="outline" size="lg" className="gap-3 text-lg px-10 py-7 w-full sm:w-auto border-2">
+                    <GraduationCap className="w-5 h-5" />
+                    Start Training
                   </Button>
                 </Link>
               </div>
             </div>
           </Card>
-        </section>
-      </div>
+        </div>
+      </section>
       
       <Footer />
       <WaitlistDialog open={showWaitlist} onOpenChange={setShowWaitlist} />

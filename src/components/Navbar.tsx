@@ -4,6 +4,7 @@ import { Hand, BarChart3, Settings, Library, Download, LogOut, Play, GraduationC
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import WaitlistDialog from "./WaitlistDialog";
+import logoIcon from "@/assets/sparshmuktilogo (1).ico";
 
 const Navbar = () => {
   const { toast } = useToast();
@@ -24,12 +25,14 @@ const Navbar = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <nav className="clay border-b border-border sticky top-0 z-50 backdrop-blur-xl">
-      <div className="max-w-[1920px] mx-auto px-6 py-4 flex items-center justify-between">
+    <nav className="fixed top-2 left-1/2 -translate-x-1/2 z-50 w-[95%] sm:w-3/4 md:w-1/2 min-w-[320px] max-w-[800px] backdrop-blur-2xl bg-white/50 dark:bg-black/50 border border-border/20 rounded-full shadow-lg">
+      <div className="px-6 py-2 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-all">
-          <div className="clay p-2 rounded-xl clay-glow">
-            <Hand className="w-6 h-6 text-primary" />
-          </div>
+          <img 
+            src={logoIcon}
+            alt="SparshMukhti Logo" 
+            className="w-8 h-8"
+          />
           <h1 className="text-2xl font-bold text-gradient">SparshMukhti</h1>
         </Link>
         
@@ -62,16 +65,6 @@ const Navbar = () => {
             >
               <Library className="w-4 h-4" />
               Library
-            </Button>
-          </Link>
-          <Link to="/pricing">
-            <Button 
-              variant={isActive("/pricing") ? "default" : "ghost"} 
-              size="sm" 
-              className="gap-2 clay"
-            >
-              <DollarSign className="w-4 h-4" />
-              Pricing
             </Button>
           </Link>
           <Button 

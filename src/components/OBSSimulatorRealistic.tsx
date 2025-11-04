@@ -26,22 +26,22 @@ const OBSSimulatorRealistic = ({ cursorX, cursorY, isClicking, gesture }: OBSSim
     { 
       name: "Gaming Scene", 
       active: true, 
-      video: "https://videos.pexels.com/video-files/3045163/3045163-hd_1920_1080_30fps.mp4" 
+      video: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" 
     },
     { 
       name: "Coding Scene", 
       active: false, 
-      video: "https://videos.pexels.com/video-files/2491284/2491284-hd_1920_1080_25fps.mp4" 
+      video: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4" 
     },
     { 
       name: "Chat Scene", 
       active: false, 
-      video: "https://videos.pexels.com/video-files/3195394/3195394-hd_1920_1080_25fps.mp4" 
+      video: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" 
     },
     { 
       name: "Music Scene", 
       active: false, 
-      video: "https://videos.pexels.com/video-files/3045163/3045163-hd_1920_1080_30fps.mp4" 
+      video: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4" 
     }
   ];
   

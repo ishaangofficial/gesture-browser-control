@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -20,6 +20,7 @@ const Training = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [allCompleted, setAllCompleted] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const progressRef = useRef({ currentProgress: 0, lastUpdate: 0, animationFrame: null as number | null });
 
   const trainingSteps = [
     {
@@ -66,60 +67,13 @@ const Training = () => {
 
   const currentTraining = trainingSteps[currentStep];
 
-  useEffect(() => {
-    if (detectedGesture === "None") {
-      setGestureStartTime(null);
-      return;
-    }
-
-    const expectedGesture = currentTraining.gesture;
-    const matchesGesture = detectedGesture.includes(expectedGesture.split(" ")[0]);
-
-    if (matchesGesture) {
-      if (currentTraining.type === "duration") {
-        if (gestureStartTime === null) {
-          setGestureStartTime(Date.now());
-        } else {
-          const elapsed = Date.now() - gestureStartTime;
-          const newProgress = Math.min((elapsed / currentTraining.requiredDuration) * 100, 100);
-          setProgress(newProgress);
-
-          if (newProgress >= 100 && !showSuccess) {
-            handleSuccess();
-          }
-        }
-      } else {
-        // Count type - only increment once per gesture detection
-        if (gestureStartTime === null) {
-          setGestureStartTime(Date.now());
-          const newCount = successCount + 1;
-          setSuccessCount(newCount);
-          const newProgress = (newCount / currentTraining.requiredCount) * 100;
-          setProgress(newProgress);
-
-          if (newCount >= currentTraining.requiredCount && !showSuccess) {
-            handleSuccess();
-          }
-        }
-      }
-    } else {
-      if (gestureStartTime !== null) {
-        setGestureStartTime(null);
-      }
-    }
-  }, [detectedGesture, gestureStartTime, currentTraining, successCount, showSuccess]);
-
-  useEffect(() => {
-    if (currentTraining.type === "count" && gestureStartTime !== null) {
-      const timeout = setTimeout(() => {
-        setGestureStartTime(null);
-      }, 500);
-      return () => clearTimeout(timeout);
-    }
-  }, [gestureStartTime, currentTraining]);
-
-  const handleSuccess = () => {
+  const handleSuccess = useCallback(() => {
+    if (showSuccess) return; // Prevent multiple calls
+    
     setShowSuccess(true);
+    progressRef.current.currentProgress = 100;
+    setProgress(100);
+    
     toast({
       title: "Perfect! ✨",
       description: `You've mastered the ${currentTraining.title} gesture!`,
@@ -130,13 +84,117 @@ const Training = () => {
       if (currentStep < trainingSteps.length - 1) {
         setCurrentStep(prev => prev + 1);
         setProgress(0);
+        progressRef.current.currentProgress = 0;
         setSuccessCount(0);
         setGestureStartTime(null);
       } else {
         setAllCompleted(true);
       }
     }, 2000);
-  };
+  }, [currentTraining, currentStep, showSuccess, toast]);
+
+  // Smooth progress bar animation with requestAnimationFrame
+  useEffect(() => {
+    if (!isActive) return;
+
+    const updateProgress = () => {
+      const now = performance.now();
+      progressRef.current.lastUpdate = now;
+
+      if (currentTraining.type === "duration") {
+        if (gestureStartTime !== null) {
+          // Gesture is active - calculate exact progress
+          const elapsed = Date.now() - gestureStartTime;
+          const exactProgress = Math.min((elapsed / currentTraining.requiredDuration) * 100, 100);
+          
+          // Smooth interpolation towards exact target
+          const diff = exactProgress - progressRef.current.currentProgress;
+          progressRef.current.currentProgress += diff * 0.25; // Fast interpolation for responsiveness
+          progressRef.current.currentProgress = Math.max(0, Math.min(100, progressRef.current.currentProgress));
+          
+          // Round to 1 decimal and sync both number and bar
+          const roundedProgress = Math.round(progressRef.current.currentProgress * 10) / 10;
+          setProgress(roundedProgress);
+
+          // Check completion - use exact progress for accuracy
+          if (exactProgress >= 99.9 && !showSuccess) {
+            progressRef.current.currentProgress = 100;
+            setProgress(100);
+            handleSuccess();
+            return;
+          }
+        } else {
+          // Gesture stopped - drop progress smoothly
+          if (progressRef.current.currentProgress > 0) {
+            progressRef.current.currentProgress = Math.max(0, progressRef.current.currentProgress - 2);
+            const roundedProgress = Math.round(progressRef.current.currentProgress * 10) / 10;
+            setProgress(roundedProgress);
+          }
+        }
+      }
+
+      progressRef.current.animationFrame = requestAnimationFrame(updateProgress);
+    };
+
+    progressRef.current.lastUpdate = performance.now();
+    progressRef.current.animationFrame = requestAnimationFrame(updateProgress);
+
+    return () => {
+      if (progressRef.current.animationFrame) {
+        cancelAnimationFrame(progressRef.current.animationFrame);
+      }
+    };
+  }, [isActive, gestureStartTime, currentTraining, showSuccess, handleSuccess]);
+
+  useEffect(() => {
+    const expectedGesture = currentTraining.gesture;
+    const matchesGesture = detectedGesture !== "None" && detectedGesture.includes(expectedGesture.split(" ")[0]);
+
+    if (matchesGesture) {
+      if (currentTraining.type === "duration") {
+        if (gestureStartTime === null) {
+          // If we had previous progress, subtract that time from start
+          const savedProgress = progressRef.current.currentProgress;
+          const savedTime = (savedProgress / 100) * currentTraining.requiredDuration;
+          setGestureStartTime(Date.now() - savedTime);
+        }
+      } else {
+        // Count type - increment on new detection
+        if (gestureStartTime === null) {
+          setGestureStartTime(Date.now());
+          const newCount = successCount + 1;
+          setSuccessCount(newCount);
+          const newProgress = (newCount / currentTraining.requiredCount) * 100;
+          progressRef.current.currentProgress = newProgress;
+          setProgress(newProgress);
+
+          if (newCount >= currentTraining.requiredCount && !showSuccess) {
+            handleSuccess();
+          }
+        }
+      }
+    } else {
+      // Gesture stopped
+      if (currentTraining.type === "duration" && gestureStartTime !== null) {
+        // Save current progress - this is where we'll continue from when gesture resumes
+        const elapsed = Date.now() - gestureStartTime;
+        const currentProgress = Math.min((elapsed / currentTraining.requiredDuration) * 100, 100);
+        progressRef.current.currentProgress = currentProgress;
+        setProgress(Math.round(currentProgress * 10) / 10);
+        // Progress stays at current value - will drop smoothly via animation loop
+      }
+      setGestureStartTime(null);
+    }
+  }, [detectedGesture, currentTraining, gestureStartTime, successCount, showSuccess, handleSuccess]);
+
+  useEffect(() => {
+    if (currentTraining.type === "count" && gestureStartTime !== null) {
+      const timeout = setTimeout(() => {
+        setGestureStartTime(null);
+      }, 300);
+      return () => clearTimeout(timeout);
+    }
+  }, [gestureStartTime, currentTraining]);
 
   const startCamera = async () => {
     try {
@@ -270,13 +328,13 @@ const Training = () => {
                     progress < 66 ? 'text-orange-500' :
                     'text-green-500'
                   }`}>
-                    {Math.round(progress)}%
+                    {Math.round(progress * 10) / 10}%
                   </span>
                 </div>
-                <div className="h-4 bg-muted rounded-full overflow-hidden">
+                <div className="h-4 bg-muted rounded-full overflow-hidden relative">
                   <div
-                    className={`h-full transition-all duration-300 ease-out ${getProgressColor()}`}
-                    style={{ width: `${progress}%` }}
+                    className={`h-full transition-none ${getProgressColor()}`}
+                    style={{ width: `${Math.max(0, Math.min(100, progress))}%` }}
                   />
                 </div>
               </div>

@@ -154,4 +154,26 @@ All colors MUST be HSL.
   .section-spacing {
     @apply py-20 px-6;
   }
+  
+  .animate-spin-slow {
+    animation: spin 3s linear infinite;
+  }
+  
+  .animate-bounce-slow {
+    animation: bounce 2s ease-in-out infinite;
+  }
+  
+  @keyframes animate-gradient {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
+  
+  .animate-gradient {
+    background-size: 200% 200%;
+    animation: animate-gradient 3s ease infinite;
+  }
 }
