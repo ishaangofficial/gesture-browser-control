@@ -48,6 +48,15 @@ const isOpenPalm = (lm: HandLandmark[], label: string): boolean => {
   return thumbOk && indexUp && middleUp && ringUp && pinkyUp;
 };
 
+const isClosedPalm = (lm: HandLandmark[]): boolean => {
+  // All fingers curled down (fist)
+  const indexDown = !isFingerExtended(lm, 8, 6, 5);
+  const middleDown = !isFingerExtended(lm, 12, 10, 9);
+  const ringDown = !isFingerExtended(lm, 16, 14, 13);
+  const pinkyDown = !isFingerExtended(lm, 20, 18, 17);
+  return indexDown && middleDown && ringDown && pinkyDown;
+};
+
 const isPointGesture = (lm: HandLandmark[]): boolean => {
   const indexUp = isFingerExtended(lm, 8, 6, 5);
   const middleUp = isFingerExtended(lm, 12, 10, 9);
@@ -57,35 +66,65 @@ const isPointGesture = (lm: HandLandmark[]): boolean => {
 };
 
 const isLShapeGesture = (lm: HandLandmark[], label: string): boolean => {
-  const thumbExtended = label === "Right" ? lm[4].x < lm[3].x - 0.05 : lm[4].x > lm[3].x + 0.05;
+  // Thumb and index extended, forming L shape
+  const thumbExtended = label === "Right" 
+    ? lm[4].x < lm[2].x - 0.08 
+    : lm[4].x > lm[2].x + 0.08;
   const indexUp = isFingerExtended(lm, 8, 6, 5);
-  const middleUp = isFingerExtended(lm, 12, 10, 9);
-  const ringUp = isFingerExtended(lm, 16, 14, 13);
-  const pinkyUp = isFingerExtended(lm, 20, 18, 17);
-  return thumbExtended && indexUp && !middleUp && !ringUp && !pinkyUp;
+  const middleDown = !isFingerExtended(lm, 12, 10, 9);
+  const ringDown = !isFingerExtended(lm, 16, 14, 13);
+  const pinkyDown = !isFingerExtended(lm, 20, 18, 17);
+  
+  // Check angle between thumb and index
+  const thumbTip = lm[4];
+  const indexTip = lm[8];
+  const wrist = lm[0];
+  
+  const thumbAngle = Math.atan2(thumbTip.y - wrist.y, thumbTip.x - wrist.x);
+  const indexAngle = Math.atan2(indexTip.y - wrist.y, indexTip.x - wrist.x);
+  const angleDiff = Math.abs(thumbAngle - indexAngle);
+  
+  // L-shape should have roughly 60-120 degree angle
+  const isLAngle = angleDiff > 1.0 && angleDiff < 2.1;
+  
+  return thumbExtended && indexUp && middleDown && ringDown && pinkyDown && isLAngle;
 };
 
 const isOKSignGesture = (lm: HandLandmark[]): boolean => {
+  // Thumb and index form circle (OK sign)
   const thumbTip = lm[4];
   const indexTip = lm[8];
   const distance = Math.sqrt(
     Math.pow((thumbTip.x - indexTip.x) * 640, 2) + 
     Math.pow((thumbTip.y - indexTip.y) * 480, 2)
   );
+  
+  // Check if other fingers are extended
   const middleUp = isFingerExtended(lm, 12, 10, 9);
   const ringUp = isFingerExtended(lm, 16, 14, 13);
   const pinkyUp = isFingerExtended(lm, 20, 18, 17);
-  return distance < 30 && middleUp && ringUp && pinkyUp;
+  
+  // OK sign: thumb+index touching (circle), other fingers extended
+  const isCircle = distance < 35 && distance > 10;
+  
+  return isCircle && middleUp && ringUp && pinkyUp;
 };
 
 const isPinchGesture = (lm: HandLandmark[]): boolean => {
+  // Thumb and index pinched together
   const thumbTip = lm[4];
   const indexTip = lm[8];
   const distance = Math.sqrt(
     Math.pow((thumbTip.x - indexTip.x) * 640, 2) + 
     Math.pow((thumbTip.y - indexTip.y) * 480, 2)
   );
-  return distance < 25;
+  
+  // Other fingers should be curled or neutral
+  const middleDown = !isFingerExtended(lm, 12, 10, 9);
+  const ringDown = !isFingerExtended(lm, 16, 14, 13);
+  const pinkyDown = !isFingerExtended(lm, 20, 18, 17);
+  
+  return distance < 30 && middleDown && ringDown && pinkyDown;
 };
 
 // Check if hand is in gesture zone (center 60%)
@@ -182,21 +221,26 @@ const recognizeGesture = (results: Results): GestureResult => {
     };
   }
 
-  // NEW GESTURE RECOGNITION
-  if (isOpenPalm(lm, label)) {
+  // NEW GESTURE RECOGNITION - Check for closed palm first
+  if (isClosedPalm(lm)) {
+    gesture = "None";
+    confidence = 0;
+    gestureStartTime = {}; // Reset all gesture timers
+    lastGestureTime = {}; // Reset cooldowns
+  } else if (isOpenPalm(lm, label)) {
     gesture = "Open Palm";
     confidence = 0.95;
-  } else if (isPointGesture(lm)) {
-    gesture = "Point";
-    confidence = 0.92;
-  } else if (isLShapeGesture(lm, label)) {
-    gesture = "L-Shape";
-    confidence = 0.90;
-  } else if (isOKSignGesture(lm)) {
-    gesture = "OK Sign";
-    confidence = 0.88;
   } else if (isPinchGesture(lm)) {
     gesture = "Pinch";
+    confidence = 0.92;
+  } else if (isOKSignGesture(lm)) {
+    gesture = "OK Sign";
+    confidence = 0.90;
+  } else if (isLShapeGesture(lm, label)) {
+    gesture = "L-Shape";
+    confidence = 0.88;
+  } else if (isPointGesture(lm)) {
+    gesture = "Point";
     confidence = 0.87;
   }
 

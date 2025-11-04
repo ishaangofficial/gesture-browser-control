@@ -1,66 +1,66 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
-  MousePointer2, 
   Hand, 
-  Move,
-  ZoomIn,
-  ScrollText,
-  Library
+  Library,
+  ArrowLeft,
+  Pointer,
+  LayoutGrid,
+  CircleDot,
+  Minimize2
 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const gestures = {
   basic: [
     {
-      name: "Cursor Move",
-      icon: <MousePointer2 className="w-8 h-8" />,
-      description: "Index finger up, other fingers down",
-      action: "Move virtual cursor",
-      difficulty: "Easy",
-      color: "text-success"
-    },
-    {
-      name: "Left Click",
-      icon: <Hand className="w-8 h-8" />,
-      description: "Index and middle fingers pinched together",
-      action: "Trigger left click",
-      difficulty: "Easy",
-      color: "text-success"
-    },
-    {
-      name: "Right Click",
+      name: "Open Palm",
       icon: <Hand className="w-8 h-8" />,
       description: "All five fingers extended (open palm)",
-      action: "Trigger right click",
+      action: "Start/Stop Recording",
       difficulty: "Easy",
-      color: "text-success"
+      color: "text-success",
+      priority: "Critical"
+    },
+    {
+      name: "Point",
+      icon: <Pointer className="w-8 h-8" />,
+      description: "Index finger extended, others down",
+      action: "Mute/Unmute Microphone",
+      difficulty: "Easy",
+      color: "text-success",
+      priority: "Critical"
+    },
+    {
+      name: "L-Shape",
+      icon: <LayoutGrid className="w-8 h-8" />,
+      description: "Thumb + Index extended forming L",
+      action: "Switch to Next Scene",
+      difficulty: "Medium",
+      color: "text-warning",
+      priority: "High"
     }
   ],
   advanced: [
     {
-      name: "Scroll",
-      icon: <ScrollText className="w-8 h-8" />,
-      description: "Four fingers up, thumb down",
-      action: "Scroll up/down with hand movement",
+      name: "OK Sign",
+      icon: <CircleDot className="w-8 h-8" />,
+      description: "Thumb + Index form circle, others up",
+      action: "Start/Stop Streaming",
       difficulty: "Medium",
-      color: "text-warning"
+      color: "text-warning",
+      priority: "High"
     },
     {
-      name: "Zoom",
-      icon: <ZoomIn className="w-8 h-8" />,
-      description: "Two hands with thumb + index extended",
-      action: "Pinch to zoom in/out",
+      name: "Pinch",
+      icon: <Minimize2 className="w-8 h-8" />,
+      description: "Thumb + Index pinched together",
+      action: "Pause Gesture Detection",
       difficulty: "Medium",
-      color: "text-warning"
-    },
-    {
-      name: "Grab & Drag",
-      icon: <Move className="w-8 h-8" />,
-      description: "Two open palms together",
-      action: "Drag elements on screen",
-      difficulty: "Hard",
-      color: "text-destructive"
+      color: "text-warning",
+      priority: "Medium"
     }
   ]
 };
@@ -69,13 +69,20 @@ const GestureLibrary = () => {
   return (
     <div className="min-h-screen p-6 bg-gradient-to-br from-background via-background to-muted/20">
       <div className="max-w-6xl mx-auto space-y-6">
-        {/* Header */}
-        <div>
-          <h1 className="text-4xl font-bold text-gradient mb-2 flex items-center gap-3">
-            <Library className="w-10 h-10" />
-            Gesture Library
-          </h1>
-          <p className="text-muted-foreground">Master all available gestures and their uses</p>
+        {/* Header with Back Button */}
+        <div className="flex items-center gap-4">
+          <Link to="/">
+            <Button variant="outline" size="icon" className="clay clay-hover">
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-4xl font-bold text-gradient mb-2 flex items-center gap-3">
+              <Library className="w-10 h-10" />
+              Gesture Library
+            </h1>
+            <p className="text-muted-foreground">Master all available gestures for OBS control</p>
+          </div>
         </div>
 
         <Tabs defaultValue="basic" className="w-full">
@@ -92,14 +99,19 @@ const GestureLibrary = () => {
                     <div className={`p-3 rounded-xl bg-primary/10 ${gesture.color} group-hover:scale-110 transition-transform`}>
                       {gesture.icon}
                     </div>
-                    <Badge variant="outline" className="bg-success/10 text-success border-success/30">
-                      {gesture.difficulty}
-                    </Badge>
+                    <div className="flex flex-col gap-2">
+                      <Badge variant="outline" className="bg-success/10 text-success border-success/30">
+                        {gesture.difficulty}
+                      </Badge>
+                      <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30">
+                        {gesture.priority}
+                      </Badge>
+                    </div>
                   </div>
                   <h3 className="text-xl font-semibold mb-2">{gesture.name}</h3>
                   <p className="text-sm text-muted-foreground mb-3">{gesture.description}</p>
                   <div className="pt-3 border-t border-border/50">
-                    <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Action</p>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">OBS Action</p>
                     <p className="text-sm font-medium">{gesture.action}</p>
                   </div>
                 </Card>
@@ -117,18 +129,23 @@ const GestureLibrary = () => {
                       <div className={`p-3 rounded-xl bg-primary/10 ${gesture.color} group-hover:scale-110 transition-transform`}>
                         {gesture.icon}
                       </div>
-                      <Badge variant="outline" className={
-                        gesture.difficulty === "Medium" 
-                          ? "bg-warning/10 text-warning border-warning/30"
-                          : "bg-destructive/10 text-destructive border-destructive/30"
-                      }>
-                        {gesture.difficulty}
-                      </Badge>
+                      <div className="flex flex-col gap-2">
+                        <Badge variant="outline" className={
+                          gesture.difficulty === "Medium" 
+                            ? "bg-warning/10 text-warning border-warning/30"
+                            : "bg-destructive/10 text-destructive border-destructive/30"
+                        }>
+                          {gesture.difficulty}
+                        </Badge>
+                        <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30">
+                          {gesture.priority}
+                        </Badge>
+                      </div>
                     </div>
                     <h3 className="text-xl font-semibold mb-2">{gesture.name}</h3>
                     <p className="text-sm text-muted-foreground mb-3">{gesture.description}</p>
                     <div className="pt-3 border-t border-border/50">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Action</p>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">OBS Action</p>
                       <p className="text-sm font-medium">{gesture.action}</p>
                     </div>
                   </div>

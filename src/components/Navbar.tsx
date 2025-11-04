@@ -64,16 +64,6 @@ const Navbar = () => {
               Library
             </Button>
           </Link>
-          <Link to="/settings">
-            <Button 
-              variant={isActive("/settings") ? "default" : "ghost"} 
-              size="sm" 
-              className="gap-2 clay"
-            >
-              <Settings className="w-4 h-4" />
-              Settings
-            </Button>
-          </Link>
           <Link to="/pricing">
             <Button 
               variant={isActive("/pricing") ? "default" : "ghost"} 
