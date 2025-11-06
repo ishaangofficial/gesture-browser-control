@@ -9,7 +9,6 @@ import WaitlistDialog from "@/components/WaitlistDialog";
 import { GlowingBentoGrid } from "@/components/GlowingBentoGrid";
 import { TypewriterText } from "@/components/TypewriterText";
 import { SplineHand } from "@/components/SplineHand";
-import HeroVortex from "@/components/HeroVortex";
 import videoSrc from "@/assets/WhatsApp Video 2025-10-26 at 20.48.05_4b89d6b0.mp4";
 import { 
   Hand, 
@@ -66,9 +65,8 @@ const Index = () => {
       
       <Navbar />
 
-      {/* Hero Section with animated vortex background */}
-      <section id="home" className="min-h-[88vh] flex items-center justify-center px-4 md:px-6 lg:px-8 relative bg-white overflow-hidden">
-        <HeroVortex className="absolute inset-0 -z-0" intensity={1.1} bgAlpha={0.85} />
+      {/* Hero Section - 100vh with Seamless Text & Spline */}
+      <section id="home" className="min-h-[88vh] flex items-center justify-center px-4 md:px-6 lg:px-8 relative bg-white">
         <div className="max-w-[1600px] w-full mx-auto flex flex-col lg:flex-row items-center justify-between gap-0 lg:gap-0">
           {/* Left Side - Text */}
           <div className="flex-1 space-y-6 md:space-y-8 z-10 max-w-2xl">
@@ -113,7 +111,7 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Right Side - Spline Hand over vortex */}
+          {/* Right Side - Spline Hand (Fixed Size, No Boundary) */}
           <div className="flex-1 flex items-center justify-center lg:justify-end w-full lg:w-auto order-1 lg:order-2 relative z-10">
             <div className="w-full max-w-[600px] h-[400px] md:h-[500px] lg:h-[600px]">
               <SplineHand 
