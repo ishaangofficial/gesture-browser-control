@@ -150,12 +150,12 @@ const Studio = () => {
         />
       )}
 
-      <div className="max-w-[1920px] mx-auto section-spacing">
+      <div className="max-w-6xl mx-auto section-spacing">
         {/* Header */}
-        <Card className="clay p-6 mb-6">
+        <Card className="p-6 mb-6">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <h2 className="text-2xl font-bold">OBS Studio Simulator</h2>
+              <h2 className="text-2xl font-semibold">OBS Studio Simulator</h2>
               <p className="text-muted-foreground">
                 Test gesture control with a realistic OBS interface simulation
               </p>
@@ -194,7 +194,7 @@ const Studio = () => {
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
           {/* OBS Simulator - Takes 2/3 width */}
           <div className="xl:col-span-2 space-y-4">
-            <Card className="clay p-0 overflow-hidden">
+            <Card className="p-0 overflow-hidden">
               <div className="aspect-video">
                 <OBSSimulatorRealistic
                   cursorX={cursorX}
@@ -206,9 +206,9 @@ const Studio = () => {
             </Card>
 
             {/* Info */}
-            <Card className="clay p-4">
+            <Card className="p-4">
               <div className="flex items-start gap-3">
-                <Info className="w-5 h-5 text-primary mt-0.5" />
+                <Info className="w-5 h-5 text-foreground/80 mt-0.5" />
                 <div className="space-y-1">
                   <h3 className="font-semibold">How to control OBS</h3>
                   <ul className="text-sm text-muted-foreground space-y-1">
@@ -225,14 +225,14 @@ const Studio = () => {
           {/* Camera feed + Stats */}
           <div className="space-y-4">
             {/* Camera feed */}
-            <Card className="clay p-4">
+            <Card className="p-4">
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <h3 className="font-semibold flex items-center gap-2">
-                    <Camera className="w-4 h-4 text-primary" />
+                    <Camera className="w-4 h-4 text-foreground/80" />
                     Camera Feed
                   </h3>
-                  <Badge variant={isActive ? "default" : "secondary"} className="clay">
+                  <Badge variant={isActive ? "default" : "secondary"} className="">
                     {isActive ? "Active" : "Inactive"}
                   </Badge>
                 </div>
@@ -268,22 +268,22 @@ const Studio = () => {
             {isActive && <PerformanceDashboard metrics={performanceMetrics} />}
 
             {/* Quick gestures */}
-            <Card className="clay p-4">
+            <Card className="p-4">
               <h3 className="font-semibold mb-3 text-sm">Quick Gestures</h3>
               <div className="space-y-2 text-xs">
-                <div className="clay-inset p-3 flex items-center justify-between rounded-lg">
+                <div className="p-3 flex items-center justify-between rounded-lg border">
                   <span className="text-muted-foreground">✋ Open Palm</span>
                   <span>Record</span>
                 </div>
-                <div className="clay-inset p-3 flex items-center justify-between rounded-lg">
+                <div className="p-3 flex items-center justify-between rounded-lg border">
                   <span className="text-muted-foreground">👉 Point</span>
                   <span>Mute Mic</span>
                 </div>
-                <div className="clay-inset p-3 flex items-center justify-between rounded-lg">
+                <div className="p-3 flex items-center justify-between rounded-lg border">
                   <span className="text-muted-foreground">🔲 L-Shape</span>
                   <span>Next Scene</span>
                 </div>
-                <div className="clay-inset p-3 flex items-center justify-between rounded-lg">
+                <div className="p-3 flex items-center justify-between rounded-lg border">
                   <span className="text-muted-foreground">👌 OK Sign</span>
                   <span>Stream</span>
                 </div>

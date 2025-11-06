@@ -8,87 +8,89 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Claymorphism Blue & White Color System */
-    --background: 210 100% 97%;
-    --foreground: 215 25% 20%;
+    /* Minimal, neutral palette inspired by Reflect */
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
 
-    --card: 210 100% 99%;
-    --card-foreground: 215 25% 20%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
 
-    --popover: 210 100% 99%;
-    --popover-foreground: 215 25% 20%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
 
-    --primary: 215 100% 55%;
+    /* Soft blue accent, used sparingly */
+    --primary: 221 83% 53%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 210 100% 65%;
+    --primary-glow: 221 83% 65%;
 
-    --secondary: 215 30% 85%;
-    --secondary-foreground: 215 25% 20%;
+    --secondary: 210 20% 96%;
+    --secondary-foreground: 222 47% 11%;
 
-    --muted: 210 40% 92%;
-    --muted-foreground: 215 16% 40%;
+    --muted: 210 20% 96%;
+    --muted-foreground: 215 16% 35%;
 
-    --accent: 215 100% 60%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 210 20% 96%;
+    --accent-foreground: 222 47% 11%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 215 30% 88%;
-    --input: 215 30% 88%;
-    --ring: 215 100% 55%;
+    --border: 214 17% 92%;
+    --input: 214 17% 92%;
+    --ring: 221 83% 53%;
 
-    --success: 142 76% 45%;
+    --success: 142 72% 30%;
     --warning: 38 92% 50%;
     --info: 199 89% 48%;
 
-    --radius: 1.5rem;
+    /* Tighter, understated rounding */
+    --radius: 0.75rem;
 
-    /* Claymorphism Shadows */
-    --clay-shadow-light: 8px 8px 16px rgba(163, 177, 198, 0.6), -8px -8px 16px rgba(255, 255, 255, 0.9);
-    --clay-shadow-dark: inset 4px 4px 8px rgba(163, 177, 198, 0.4), inset -4px -4px 8px rgba(255, 255, 255, 0.8);
-    --clay-shadow-hover: 12px 12px 24px rgba(163, 177, 198, 0.5), -12px -12px 24px rgba(255, 255, 255, 0.95);
-    --clay-glow: 0 0 30px hsl(215 100% 55% / 0.3);
-    
-    /* Animations */
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-clay: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    /* Subtle, flat shadows */
+    --clay-shadow-light: 0 1px 2px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.04);
+    --clay-shadow-dark: inset 0 1px 2px rgba(0,0,0,0.06);
+    --clay-shadow-hover: 0 4px 16px rgba(0,0,0,0.08);
+    --clay-glow: 0 0 0 rgba(0,0,0,0);
+
+    /* Reduced motion feel */
+    --transition-smooth: all 0.2s ease;
+    --transition-clay: all 0.2s ease;
   }
 
   .dark {
-    --background: 215 25% 15%;
+    --background: 222 47% 10%;
     --foreground: 210 40% 98%;
 
-    --card: 215 25% 18%;
+    --card: 222 47% 12%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 215 25% 18%;
+    --popover: 222 47% 12%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 215 100% 60%;
+    --primary: 221 83% 60%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 210 100% 70%;
+    --primary-glow: 221 83% 65%;
 
-    --secondary: 215 20% 25%;
+    --secondary: 217 19% 27%;
     --secondary-foreground: 210 40% 98%;
 
-    --muted: 215 20% 22%;
-    --muted-foreground: 215 16% 65%;
+    --muted: 217 19% 23%;
+    --muted-foreground: 215 16% 78%;
 
-    --accent: 215 100% 65%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 217 19% 27%;
+    --accent-foreground: 210 40% 98%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 215 25% 25%;
-    --input: 215 25% 25%;
-    --ring: 215 100% 60%;
+    --border: 217 19% 23%;
+    --input: 217 19% 23%;
+    --ring: 221 83% 60%;
 
-    --clay-shadow-light: 6px 6px 12px rgba(0, 0, 0, 0.4), -6px -6px 12px rgba(255, 255, 255, 0.05);
-    --clay-shadow-dark: inset 3px 3px 6px rgba(0, 0, 0, 0.5), inset -3px -3px 6px rgba(255, 255, 255, 0.08);
-    --clay-shadow-hover: 10px 10px 20px rgba(0, 0, 0, 0.5), -10px -10px 20px rgba(255, 255, 255, 0.08);
-    --clay-glow: 0 0 30px hsl(215 100% 60% / 0.4);
+    --clay-shadow-light: 0 1px 2px rgba(0,0,0,0.5);
+    --clay-shadow-dark: inset 0 1px 2px rgba(255,255,255,0.04);
+    --clay-shadow-hover: 0 6px 18px rgba(0,0,0,0.5);
+    --clay-glow: 0 0 0 rgba(0,0,0,0);
   }
 }
 
@@ -100,10 +102,12 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    line-height: 1.5;
+    letter-spacing: 0;
   }
   
   h1, h2, h3, h4, h5, h6 {
-    @apply font-bold;
+    @apply font-semibold tracking-tight;
   }
   
   h1 {
@@ -123,6 +127,7 @@ All colors MUST be HSL.
   .clay {
     background: hsl(var(--card));
     box-shadow: var(--clay-shadow-light);
+    border: 1px solid hsl(var(--border));
     border-radius: var(--radius);
     transition: var(--transition-clay);
   }
@@ -130,12 +135,13 @@ All colors MUST be HSL.
   .clay-inset {
     background: hsl(var(--background));
     box-shadow: var(--clay-shadow-dark);
+    border: 1px solid hsl(var(--border));
     border-radius: calc(var(--radius) - 4px);
   }
   
   .clay-hover:hover {
     box-shadow: var(--clay-shadow-hover);
-    transform: translateY(-2px);
+    transform: translateY(-1px);
   }
   
   .clay-pressed {
@@ -144,11 +150,11 @@ All colors MUST be HSL.
   }
   
   .clay-glow {
-    box-shadow: var(--clay-shadow-light), var(--clay-glow);
+    box-shadow: var(--clay-shadow-light);
   }
   
   .text-gradient {
-    @apply bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent;
+    @apply text-foreground;
   }
   
   .section-spacing {

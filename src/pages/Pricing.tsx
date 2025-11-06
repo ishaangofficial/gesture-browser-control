@@ -93,14 +93,14 @@ const Pricing = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      <div className="max-w-7xl mx-auto section-spacing">
+      <div className="max-w-6xl mx-auto section-spacing">
         {/* Header */}
-        <div className="text-center mb-16">
-          <Badge className="clay mb-4">Pricing</Badge>
-          <h1 className="text-5xl font-bold mb-4">
-            Choose Your <span className="text-gradient">Plan</span>
+        <div className="text-center mb-12">
+          <Badge className="mb-3">Pricing</Badge>
+          <h1 className="text-4xl font-semibold mb-3">
+            Choose Your Plan
           </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-base text-muted-foreground max-w-2xl mx-auto">
             Get full access to gesture control for OBS Studio. Download the desktop app after purchase.
           </p>
         </div>
@@ -108,13 +108,13 @@ const Pricing = () => {
         {!showPayment ? (
           <>
             {/* Plan Toggle */}
-            <div className="flex justify-center mb-12">
-              <div className="clay p-2 inline-flex gap-2">
+            <div className="flex justify-center mb-10">
+              <div className="p-1 inline-flex gap-1 border rounded-lg">
                 <button
                   onClick={() => setSelectedPlan("monthly")}
-                  className={`px-6 py-3 rounded-xl font-medium transition-all ${
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
                     selectedPlan === "monthly"
-                      ? "clay text-primary"
+                      ? "bg-foreground text-background"
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
@@ -122,14 +122,14 @@ const Pricing = () => {
                 </button>
                 <button
                   onClick={() => setSelectedPlan("yearly")}
-                  className={`px-6 py-3 rounded-xl font-medium transition-all ${
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
                     selectedPlan === "yearly"
-                      ? "clay text-primary"
+                      ? "bg-foreground text-background"
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
                   Yearly
-                  <Badge className="ml-2 bg-primary text-primary-foreground">Save 17%</Badge>
+                  <Badge className="ml-2">Save 17%</Badge>
                 </button>
               </div>
             </div>
@@ -139,18 +139,18 @@ const Pricing = () => {
               {plans.map((plan) => (
                 <Card
                   key={plan.value}
-                  className={`clay clay-hover p-8 ${
-                    plan.value === selectedPlan ? "clay-glow ring-2 ring-primary" : ""
+                  className={`p-8 ${
+                    plan.value === selectedPlan ? "ring-1 ring-foreground" : ""
                   }`}
                 >
                   {plan.savings && (
-                    <Badge className="mb-4 bg-primary text-primary-foreground">
+                    <Badge className="mb-4">
                       {plan.savings}
                     </Badge>
                   )}
-                  <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
+                  <h3 className="text-2xl font-semibold mb-2">{plan.name}</h3>
                   <div className="mb-6">
-                    <span className="text-5xl font-bold text-gradient">{plan.price}</span>
+                    <span className="text-5xl font-semibold text-foreground">{plan.price}</span>
                     <span className="text-muted-foreground">/{plan.period}</span>
                   </div>
                   
@@ -159,7 +159,7 @@ const Pricing = () => {
                       setSelectedPlan(plan.value as "monthly" | "yearly");
                       setShowPayment(true);
                     }}
-                    className="w-full mb-6 clay clay-hover"
+                    className="w-full mb-6"
                     size="lg"
                   >
                     Get Started
@@ -169,8 +169,8 @@ const Pricing = () => {
                   <div className="space-y-3">
                     {plan.features.map((feature, idx) => (
                       <div key={idx} className="flex items-start gap-3">
-                        <div className="clay rounded-full p-1 mt-0.5">
-                          <Check className="w-4 h-4 text-primary" />
+                        <div className="rounded-full p-1 mt-0.5 border">
+                          <Check className="w-4 h-4 text-foreground/80" />
                         </div>
                         <span className="text-sm">{feature}</span>
                       </div>
@@ -182,7 +182,7 @@ const Pricing = () => {
           </>
         ) : (
           /* Payment Form */
-          <Card className="clay max-w-2xl mx-auto p-8">
+          <Card className="max-w-2xl mx-auto p-8">
             <h2 className="text-3xl font-bold mb-2">Complete Payment</h2>
             <p className="text-muted-foreground mb-6">
               Selected: {selectedPlan === "monthly" ? "Monthly - $9/month" : "Yearly - $89/year"}
@@ -192,20 +192,20 @@ const Pricing = () => {
             <div className="grid grid-cols-2 gap-4 mb-6">
               <button
                 onClick={() => setPaymentMethod("card")}
-                className={`clay clay-hover p-4 flex items-center gap-3 ${
-                  paymentMethod === "card" ? "ring-2 ring-primary" : ""
+                className={`p-4 flex items-center gap-3 border rounded-md ${
+                  paymentMethod === "card" ? "ring-1 ring-foreground" : ""
                 }`}
               >
-                <CreditCard className="w-5 h-5 text-primary" />
+                <CreditCard className="w-5 h-5 text-foreground/80" />
                 <span className="font-medium">Credit/Debit Card</span>
               </button>
               <button
                 onClick={() => setPaymentMethod("upi")}
-                className={`clay clay-hover p-4 flex items-center gap-3 ${
-                  paymentMethod === "upi" ? "ring-2 ring-primary" : ""
+                className={`p-4 flex items-center gap-3 border rounded-md ${
+                  paymentMethod === "upi" ? "ring-1 ring-foreground" : ""
                 }`}
               >
-                <Smartphone className="w-5 h-5 text-primary" />
+                <Smartphone className="w-5 h-5 text-foreground/80" />
                 <span className="font-medium">UPI</span>
               </button>
             </div>
@@ -221,7 +221,7 @@ const Pricing = () => {
                     value={cardDetails.number}
                     onChange={(e) => setCardDetails({...cardDetails, number: e.target.value})}
                     maxLength={19}
-                    className="clay-inset"
+                    className=""
                   />
                 </div>
                 <div>
@@ -231,7 +231,7 @@ const Pricing = () => {
                     placeholder="John Doe"
                     value={cardDetails.name}
                     onChange={(e) => setCardDetails({...cardDetails, name: e.target.value})}
-                    className="clay-inset"
+                    className=""
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -243,7 +243,7 @@ const Pricing = () => {
                       value={cardDetails.expiry}
                       onChange={(e) => setCardDetails({...cardDetails, expiry: e.target.value})}
                       maxLength={5}
-                      className="clay-inset"
+                      className=""
                     />
                   </div>
                   <div>
@@ -255,7 +255,7 @@ const Pricing = () => {
                       value={cardDetails.cvv}
                       onChange={(e) => setCardDetails({...cardDetails, cvv: e.target.value})}
                       maxLength={4}
-                      className="clay-inset"
+                      className=""
                     />
                   </div>
                 </div>
@@ -269,7 +269,7 @@ const Pricing = () => {
                     placeholder="yourname@upi"
                     value={upiId}
                     onChange={(e) => setUpiId(e.target.value)}
-                    className="clay-inset"
+                    className=""
                   />
                 </div>
               </div>
@@ -280,14 +280,14 @@ const Pricing = () => {
               <Button
                 variant="outline"
                 onClick={() => setShowPayment(false)}
-                className="flex-1 clay"
+                className="flex-1"
                 disabled={processing}
               >
                 Back
               </Button>
               <Button
                 onClick={handlePayment}
-                className="flex-1 clay clay-hover"
+                className="flex-1"
                 disabled={processing}
               >
                 {processing ? (
@@ -308,8 +308,8 @@ const Pricing = () => {
 
         {/* FAQ Section */}
         <div className="mt-20">
-          <h2 className="text-3xl font-bold text-center mb-12">
-            Frequently Asked <span className="text-gradient">Questions</span>
+          <h2 className="text-3xl font-semibold text-center mb-10">
+            Frequently Asked Questions
           </h2>
           <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             {[
@@ -330,8 +330,8 @@ const Pricing = () => {
                 a: "Yes! All plans include regular updates with new features and improvements."
               }
             ].map((faq, idx) => (
-              <Card key={idx} className="clay clay-hover p-6">
-                <h3 className="font-semibold mb-2 text-primary">{faq.q}</h3>
+              <Card key={idx} className="p-6">
+                <h3 className="font-medium mb-2 text-foreground">{faq.q}</h3>
                 <p className="text-sm text-muted-foreground">{faq.a}</p>
               </Card>
             ))}

@@ -239,25 +239,25 @@ const Training = () => {
       <div className="min-h-screen bg-background">
         <Navbar />
         <div className="max-w-4xl mx-auto section-spacing">
-          <Card className="clay clay-glow p-12 text-center">
+          <Card className="p-12 text-center">
             <div className="mb-8">
-              <Trophy className="w-32 h-32 text-primary mx-auto mb-6" />
-              <h1 className="text-5xl font-bold mb-4 text-gradient">Training Complete! 🎉</h1>
-              <p className="text-xl text-muted-foreground mb-8">
+              <Trophy className="w-28 h-28 text-foreground mx-auto mb-6" />
+              <h1 className="text-4xl font-semibold mb-4">Training Complete! 🎉</h1>
+              <p className="text-lg text-muted-foreground mb-8">
                 You've mastered all gesture controls! Ready to control OBS Studio like a pro.
               </p>
             </div>
             
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
               {trainingSteps.map((step, idx) => (
-                <div key={idx} className="clay-inset p-4 rounded-xl">
+                <div key={idx} className="p-4 rounded-xl border">
                   <div className="text-4xl mb-2">{step.icon}</div>
                   <CheckCircle2 className="w-6 h-6 text-green-500 mx-auto" />
                 </div>
               ))}
             </div>
 
-            <Button onClick={() => navigate("/studio")} size="lg" className="clay clay-hover">
+            <Button onClick={() => navigate("/studio")} size="lg" className="">
               Go to OBS Simulator
               <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
@@ -271,13 +271,13 @@ const Training = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      <div className="max-w-7xl mx-auto section-spacing">
-        <Card className="clay p-6 mb-6">
+      <div className="max-w-6xl mx-auto section-spacing">
+        <Card className="p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-3xl font-bold">
-              Gesture <span className="text-gradient">Training</span>
+            <h1 className="text-3xl font-semibold">
+              Gesture Training
             </h1>
-            <Badge className="clay text-lg px-4 py-2">
+            <Badge className="text-lg px-4 py-2">
               {currentStep + 1} / {trainingSteps.length}
             </Badge>
           </div>
@@ -287,7 +287,7 @@ const Training = () => {
                 key={idx}
                 className={`flex-1 h-2 rounded-full transition-all ${
                   idx < currentStep ? 'bg-green-500' :
-                  idx === currentStep ? 'bg-primary' :
+                  idx === currentStep ? 'bg-foreground' :
                   'bg-muted'
                 }`}
               />
@@ -297,18 +297,18 @@ const Training = () => {
 
         <div className="grid lg:grid-cols-2 gap-6">
           <div className="space-y-6">
-            <Card className="clay clay-glow p-8">
+            <Card className="p-8">
               <div className="text-center mb-6">
                 <div className="text-8xl mb-4">{currentTraining.icon}</div>
-                <h2 className="text-3xl font-bold mb-2">{currentTraining.title}</h2>
-                <Badge variant={showSuccess ? "default" : "secondary"} className="clay text-sm">
+                <h2 className="text-3xl font-semibold mb-2">{currentTraining.title}</h2>
+                <Badge variant={showSuccess ? "default" : "secondary"} className="text-sm">
                   {showSuccess ? "✓ Success!" : "In Progress"}
                 </Badge>
               </div>
 
-              <div className="clay-inset p-4 rounded-xl mb-4">
+              <div className="p-4 rounded-xl mb-4 border">
                 <h3 className="font-semibold mb-2 flex items-center gap-2">
-                  <Target className="w-4 h-4 text-primary" />
+                  <Target className="w-4 h-4 text-foreground/80" />
                   Instructions
                 </h3>
                 <p className="text-sm mb-2">{currentTraining.instruction}</p>
@@ -340,7 +340,7 @@ const Training = () => {
               </div>
             </Card>
 
-            <Card className="clay p-6">
+            <Card className="p-6">
               <h3 className="font-semibold mb-3">💡 Tips</h3>
               <ul className="text-sm space-y-2 text-muted-foreground">
                 <li>• Keep your hand within the camera frame</li>
@@ -352,14 +352,14 @@ const Training = () => {
           </div>
 
           <div className="space-y-6">
-            <Card className="clay p-4">
+            <Card className="p-4">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-semibold flex items-center gap-2">
-                  <Camera className="w-4 h-4 text-primary" />
+                  <Camera className="w-4 h-4 text-foreground/80" />
                   Practice Area
                 </h3>
                 {!isActive ? (
-                  <Button onClick={startCamera} className="clay clay-hover">
+                  <Button onClick={startCamera} className="">
                     Start Camera
                   </Button>
                 ) : (
@@ -392,14 +392,14 @@ const Training = () => {
                 )}
                 
                 {isActive && detectedGesture !== "None" && (
-                  <div className="absolute top-4 right-4 bg-primary/90 backdrop-blur-sm text-primary-foreground px-4 py-2 rounded-lg">
+                  <div className="absolute top-4 right-4 bg-foreground/90 backdrop-blur-sm text-background px-4 py-2 rounded-lg">
                     <p className="text-sm font-medium">{detectedGesture}</p>
                   </div>
                 )}
 
                 {showSuccess && (
-                  <div className="absolute inset-0 bg-green-500/20 backdrop-blur-sm flex items-center justify-center animate-fade-in">
-                    <div className="clay-glow bg-background p-8 rounded-2xl">
+                  <div className="absolute inset-0 bg-green-500/10 backdrop-blur-sm flex items-center justify-center animate-fade-in">
+                    <div className="bg-background p-8 rounded-2xl border shadow-sm">
                       <CheckCircle2 className="w-24 h-24 text-green-500 mx-auto mb-4" />
                       <p className="text-2xl font-bold text-center">Perfect!</p>
                     </div>
@@ -408,13 +408,13 @@ const Training = () => {
               </div>
             </Card>
 
-            <Card className="clay p-4">
+            <Card className="p-4">
               <h3 className="font-semibold mb-3">All Gestures</h3>
               <div className="space-y-2">
                 {trainingSteps.map((step, idx) => (
                   <div
                     key={idx}
-                    className={`clay-inset p-3 rounded-lg flex items-center justify-between transition-all ${
+                    className={`p-3 rounded-lg flex items-center justify-between transition-all border ${
                       idx === currentStep ? 'ring-2 ring-primary' : ''
                     }`}
                   >
@@ -425,7 +425,7 @@ const Training = () => {
                     {idx < currentStep ? (
                       <CheckCircle2 className="w-5 h-5 text-green-500" />
                     ) : idx === currentStep ? (
-                      <Badge variant="default" className="clay">Active</Badge>
+                      <Badge variant="default" className="">Active</Badge>
                     ) : null}
                   </div>
                 ))}
